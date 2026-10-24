@@ -1,0 +1,56 @@
+url: https://thomuk.github.io/DBinventory/
+
+template:
+  bootstrap: 5
+  bslib:
+    primary: "#1f4e79"
+
+home:
+  title: DBinventory
+  description: Inventory and column profile of a database or Parquet store from a read-only connection.
+
+navbar:
+  structure:
+    left: [intro, reference, articles, news]
+    right: [search, github]
+
+reference:
+- title: Run everything
+  desc: One call from a connection string, file or Parquet directory to a store, exports and report.
+  contents:
+  - inventory_run
+  - db_connect
+  - parquet_connect
+- title: Inventory
+  desc: Artefact 1. Every table and column with counts, sizes and freshness.
+  contents:
+  - db_inventory
+  - db_tables
+  - db_columns
+  - db_row_counts
+  - db_freshness
+  - db_table_sizes
+- title: Column profile
+  desc: Artefact 2. Per-column statistics, semantic types and fingerprints.
+  contents:
+  - db_profile
+  - top_values_of
+  - infer_semantic_type
+  - fingerprints
+  - duplicate_candidates
+- title: Store, export and report
+  contents:
+  - store_open
+  - store_write
+  - store_read
+  - store_write_inventory
+  - store_read_inventory
+  - store_export
+  - render_report
+- title: Dialects and types
+  contents:
+  - db_dialect
+  - type_class
+- title: Synthetic test data
+  contents:
+  - fakehosp_path

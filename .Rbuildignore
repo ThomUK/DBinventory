@@ -6,3 +6,7 @@
 ^\.github$
 ^_output$
 ^.*\.sqlite-journal$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^\.claude$

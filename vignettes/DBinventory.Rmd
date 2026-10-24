@@ -1,0 +1,108 @@
+---
+title: "Getting started with DBinventory"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting started with DBinventory}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+DBinventory answers two questions about a database you have `SELECT` access
+to and no documentation for: *what is in it* (the inventory) and *what does
+each column hold* (the column profile). This article walks through both on
+the synthetic hospital database bundled with the package.
+
+```{r setup}
+library(DBinventory)
+```
+
+## Connect
+
+`db_connect()` takes whatever you have: a DBI connection, an ODBC connection
+string or DSN for SQL Server, a SQLite or DuckDB file, or a Parquet file or
+directory. The bundled fixture is a SQLite file.
+
+```{r connect}
+con <- db_connect(fakehosp_path())
+db_dialect(con)
+```
+
+On a hospital warehouse it would be:
+
+```{r mssql, eval = FALSE}
+con <- db_connect("Driver={ODBC Driver 18 for SQL Server};Server=warehouse;Database=DW;Trusted_Connection=yes;TrustServerCertificate=yes;")
+```
+
+## Inventory
+
+`db_inventory()` lists every table and view, every column with its type, and
+adds exact row counts, sizes from system views where available, and the
+newest value in any date or datetime column as a freshness signal. Regular
+expressions on `schema.table` narrow the scope.
+
+```{r inventory}
+inv <- db_inventory(con, include = c("pas_", "v_emergency"), progress = FALSE)
+inv$tables[, c("table_name", "table_type", "n_columns", "row_count", "newest_datetime", "newest_datetime_column")]
+```
+
+Columns carry a `type_class` that normalises engine type names, which is what
+decides which statistics the profiler can ask for.
+
+```{r columns}
+inv$columns[inv$columns$table_name == "pas_patients", c("column_name", "data_type", "type_class")]
+```
+
+## Column profile
+
+`db_profile()` runs one aggregate query per table (batched by column) plus one
+frequency query per column that has few enough distinct values for a
+frequency table to mean something. Tables above `sample_rows` are profiled on
+a sample materialised in a temporary table.
+
+```{r profile}
+prof <- db_profile(con, inv, progress = FALSE)
+prof[prof$table_name == "pas_patients",
+     c("column_name", "null_rate", "distinct_count", "is_unique", "semantic_type", "values_suppressed")]
+```
+
+Literal values are suppressed by default for identifiers, free text and
+columns whose names suggest personal data, because the profile of a hospital
+warehouse will end up in a repository. Codes and dates keep theirs:
+
+```{r top}
+top_values_of(prof, "pas_patients", "ethnicity")
+prof[prof$column_name == "dob", c("min_value", "max_value")]
+```
+
+The hashes are computed before suppression, so copies of a suppressed column
+in other tables still match on fingerprint:
+
+```{r dupes}
+inv2 <- db_inventory(con, include = c("pas_outpatient_appointments", "derived_op_appointments"), progress = FALSE)
+prof2 <- db_profile(con, inv2, progress = FALSE)
+duplicate_candidates(prof2)[, c("n_tables", "columns")]
+```
+
+## Store, resume and report
+
+For a warehouse of hundreds of tables, use `inventory_run()`. It writes the
+inventory and each table's profile to a SQLite store as it goes, so an
+interrupted run resumes where it stopped, and it can export CSV or Parquet and
+render the HTML report at the end.
+
+```{r run, eval = FALSE}
+out <- inventory_run(
+  "Driver={ODBC Driver 18 for SQL Server};Server=warehouse;Database=DW;Trusted_Connection=yes;",
+  store = "dw_inventory.sqlite",
+  export_dir = "dw_inventory_csv",
+  report = "dw_inventory.html"
+)
+```
+
+```{r disconnect}
+DBI::dbDisconnect(con)
+```
