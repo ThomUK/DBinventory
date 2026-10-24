@@ -128,7 +128,7 @@ out <- inventory_run(fakehosp_path(), store = tempfile(fileext = ".sqlite"),
                      include = "pas_patients", progress = FALSE)
 #> ℹ 1 table found (sqlite dialect)
 #> ✔ Inventory of 1 table and 10 columns in 0s
-#> ✔ Run complete in 0.1s: 10 column profiles in /tmp/RtmpkbfZAI/file1aa0321b5d9.sqlite
+#> ✔ Run complete in 0.1s: 10 column profiles in /tmp/RtmpCgx8rv/file1b5d6221f977.sqlite
 out$profile[, c("column_name", "semantic_type", "null_rate")]
 #> # A tibble: 10 × 3
 #>    column_name         semantic_type null_rate
