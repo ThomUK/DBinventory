@@ -44,7 +44,7 @@ expressions on `schema.table` narrow the scope.
 
 inv <- db_inventory(con, include = c("pas_", "v_emergency"), progress = FALSE)
 #> ℹ 6 tables found (sqlite dialect)
-#> ✔ Inventory of 6 tables and 70 columns in 0.2s
+#> ✔ Inventory of 6 tables and 70 columns in 0.1s
 inv$tables[, c("table_name", "table_type", "n_columns", "row_count", "newest_datetime", "newest_datetime_column")]
 #> # A tibble: 6 × 6
 #>   table_name                  table_type n_columns row_count newest_datetime    
