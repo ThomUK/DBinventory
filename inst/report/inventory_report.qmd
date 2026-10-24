@@ -214,6 +214,8 @@ if (nrow(profile) > 0) {
 
 ## Run log
 
+One row per table per profiling attempt, with its outcome, how long it took and any error message. It is the checkpoint: a rerun against the same store skips tables whose latest entry is `ok` and retries the rest. Errors here usually mean a broken view or an object the login cannot read.
+
 ```{r log}
 if (nrow(log) > 0) {
   l <- log[order(log$logged_at, decreasing = TRUE), ]
