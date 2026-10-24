@@ -1,0 +1,30 @@
+[
+  {
+    "label": "sampled",
+    "file": "example-report-sampled.html",
+    "scale": "full",
+    "sample_rows": 1000000,
+    "tables": 52,
+    "columns": 559,
+    "rows": 60282771,
+    "tables_sampled": 8,
+    "fk_candidates": 104,
+    "seconds": 65,
+    "rendered_at": "2026-10-24 20:46 UTC",
+    "size_mb": 2.3
+  },
+  {
+    "label": "unsampled",
+    "file": "example-report-unsampled.html",
+    "scale": "full",
+    "sample_rows": "Inf",
+    "tables": 52,
+    "columns": 559,
+    "rows": 60282771,
+    "tables_sampled": 0,
+    "fk_candidates": 101,
+    "seconds": 17,
+    "rendered_at": "2026-10-24 20:47 UTC",
+    "size_mb": 2.3
+  }
+]
