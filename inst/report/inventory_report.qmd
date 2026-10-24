@@ -170,6 +170,8 @@ if (nrow(profile) > 0) {
 
 ## Column profile
 
+`top_values` lists the most frequent values with their counts; blank where values are suppressed or the column has too many distinct values for a frequency table to be useful.
+
 ```{r profile}
 if (nrow(profile) > 0) {
   p <- profile
@@ -177,6 +179,11 @@ if (nrow(profile) > 0) {
   p$distinct_rate <- round(p$distinct_rate, 3)
   p$mean_value <- round(p$mean_value, 3)
   p$mean_length <- round(p$mean_length, 1)
+  p$top_values <- vapply(p$top_values, function(j) {
+    if (is.na(j)) return("")
+    tv <- jsonlite::fromJSON(j)
+    paste0(tv$value, " (", format(tv$n, big.mark = ",", trim = TRUE), ")", collapse = "; ")
+  }, character(1), USE.NAMES = FALSE)
   cols <- c("table_schema", "table_name", "column_name", "data_type", "semantic_type", "row_count", "null_rate",
             "distinct_count", "distinct_rate", "is_unique", "min_value", "max_value", "mean_value", "top_values", "sampled")
   show(as.data.frame(p[, intersect(cols, names(p))]))
