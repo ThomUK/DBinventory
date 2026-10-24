@@ -9,7 +9,7 @@ October 24, 2026
 **46** tables and views, **523** columns, **30,233** rows in total.
 Profiled 523 columns in 46 tables.
 
-Last run started 2026-10-24 19:01:09 UTC against
+Last run started 2026-10-24 19:08:21 UTC against
 `/home/runner/work/_temp/Library/DBinventory/extdata/fakehosp.sqlite`
 (sqlite dialect), sampling tables above 1,000,000 rows, top 10 values
 per column, literal values suppressed for identifiers, free text and
@@ -77,9 +77,14 @@ candidates to drop from any dictionary.
 
 ## Candidate duplicate columns
 
-Columns in different tables with the same value fingerprint (type,
-distinct-count magnitude, min, max and top values). A starting point for
-the duplicate map, not a verdict: value-overlap tests come next.
+Groups of columns in different tables whose contents look the same: same
+type class, same order of magnitude of distinct values, same minimum and
+maximum and the same most frequent values, hashed together as a
+fingerprint. Each row is one group, listing every column in it; a group
+spanning a source table and a derived table is probably a copy, and
+columns matching under different names are the ones worth checking
+first. It is a starting point for the duplicate map, not a verdict:
+value-overlap tests confirm or reject it in the next stage.
 
 ## Column profile
 
