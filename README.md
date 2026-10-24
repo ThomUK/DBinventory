@@ -39,18 +39,27 @@ One call does the whole run:
 
 ```r
 library(DBinventory)
+con <- "Driver={ODBC Driver 18 for SQL Server};Server=warehouse;Database=DW;Trusted_Connection=yes;TrustServerCertificate=yes;"
 
-out <- inventory_run(
-  "Driver={ODBC Driver 18 for SQL Server};Server=warehouse;Database=DW;Trusted_Connection=yes;TrustServerCertificate=yes;",
-  organisation = "Example NHS Trust",   # prefixes the report title
-  store      = "dw_inventory.sqlite",   # results and checkpoints
-  export_dir = "dw_inventory_csv",      # one CSV per store table
-  report     = "dw_inventory.html"      # the rendered report
-)
+# Sampled report: tables above a million rows are profiled on a sample of their
+# rows. Best for a large warehouse, where reading every row of every table
+# would take too long for a first look.
+out <- inventory_run(con, organisation = "Example NHS Trust",
+                     store = "dw_inventory.sqlite", report = "dw_inventory.html")
+
+# Full report: every row of every table. Best when the database is small enough
+# to read in full, or when exact distinct counts and uniqueness matter, as they
+# do when choosing keys.
+out <- inventory_run(con, organisation = "Example NHS Trust", sample_rows = Inf,
+                     store = "dw_inventory_full.sqlite", report = "dw_inventory_full.html")
 
 out$inventory$tables   # one row per table or view
 out$profile            # one row per column
 ```
+
+Other arguments: `export_dir` writes one CSV per store table (`export_format
+= "parquet"` for Parquet), and `include`, `exclude` and `schema` narrow the
+run to part of the database.
 
 `inventory_run()` accepts anything `db_connect()` does: a DBI connection, an
 ODBC connection string or DSN name, a `.sqlite` or `.duckdb` file, a `.parquet`
@@ -124,17 +133,14 @@ than 200 distinct values, and for columns whose names suggest personal data (`nh
 copies still match. Pass `keep_values = TRUE` where the output itself is held
 securely.
 
-**Large tables are sampled.** Exact `COUNT(*)` and `MAX(datetime)` always run
-on the full table; value statistics for tables above `sample_rows` (default a
-million) are computed on a sample materialised in a session temporary table
-(`TABLESAMPLE SYSTEM` on SQL Server, `USING SAMPLE ... (system)` on DuckDB,
-`ORDER BY random()` on SQLite, `TABLESAMPLE SYSTEM (pct)` on PostgreSQL; views
-on SQL Server fall back to the first rows). `sampled` and `sample_method`
-record what happened. `sample_rows = Inf` disables it. Sampling exists for
-SQL Server, where a full scan of a large table is slow; on DuckDB over
-Parquet the aggregates are fast enough that an unsampled run is usually
-quicker than materialising samples (on the 60-million-row synthetic trust,
-17 seconds unsampled against 65 sampled), so set `sample_rows = Inf` there.
+**Large tables are sampled by default.** Exact `COUNT(*)` and `MAX(datetime)`
+always run on the full table; value statistics for tables above `sample_rows`
+(default a million) are computed on a sample materialised in a session
+temporary table (`TABLESAMPLE SYSTEM` on SQL Server, `USING SAMPLE ... (system)`
+on DuckDB, `ORDER BY random()` on SQLite, `TABLESAMPLE SYSTEM (pct)` on
+PostgreSQL; views on SQL Server fall back to the first rows). `sampled` and
+`sample_method` record what happened. `sample_rows = Inf` gives the full
+report.
 
 **One query per table for the aggregates, one per eligible column for top
 values.** Aggregates are batched `column_batch` columns at a time. Top values

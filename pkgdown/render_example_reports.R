@@ -1,6 +1,6 @@
 # Renders the example reports the pkgdown site shows under "Example Reports":
-# one sampled run and one unsampled run over the Fake NHS Trust synthetic
-# dataset, read through the fakehospdata package. Run by the example-reports
+# a sampled run and a full run over the Fake NHS Trust synthetic dataset,
+# read through the fakehospdata package. Run by the example-reports
 # GitHub Actions workflow (Actions tab, "Run workflow"), which commits the
 # output to pkgdown/assets/; the pkgdown build then publishes it.
 #
@@ -35,7 +35,7 @@ run_one <- function(label, sample_rows) {
 
 runs <- list(
   run_one("sampled", sample_rows),
-  run_one("unsampled", Inf)
+  run_one("full", Inf)
 )
 jsonlite::write_json(runs, "pkgdown/assets/example-reports.json", auto_unbox = TRUE, pretty = TRUE)
 for (r in runs) cat(sprintf("%-10s %d tables, %d columns, %d sampled, %d fk candidates, %d s, %.1f MB\n",
