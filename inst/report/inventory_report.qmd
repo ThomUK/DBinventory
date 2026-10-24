@@ -83,14 +83,17 @@ d <- d[!is.na(d)]
 if (length(d) > 0) {
   month_start <- function(x) as.Date(format(x, "%Y-%m-01"))
   months <- seq(month_start(min(d)), month_start(max(d)), by = "month")
-  counts <- data.frame(month = months, tables = as.integer(table(factor(month_start(d), levels = as.character(months)))))
-  step <- max(1, ceiling(length(months) / 12))        # at most about twelve labels
-  ggplot(counts, aes(x = month, y = tables)) +
-    geom_col(fill = fill_blue, width = 28) +
-    scale_x_date(breaks = months[seq(1, length(months), by = step)], date_labels = "%d %b %Y",
-                 expand = expansion(add = 15)) +
-    scale_y_continuous(breaks = function(l) unique(floor(pretty(l)))) +
-    labs(x = "Month of newest datetime in table", y = "Tables")
+  edges <- seq(months[1], by = "month", length.out = length(months) + 1)   # month boundaries
+  counts <- data.frame(
+    from = edges[-length(edges)], to = edges[-1],
+    tables = as.integer(table(factor(month_start(d), levels = as.character(months))))
+  )
+  step <- max(1, ceiling(length(edges) / 13))        # at most about thirteen boundary labels
+  ggplot(counts) +
+    geom_rect(aes(xmin = from, xmax = to, ymin = 0, ymax = tables), fill = fill_blue, colour = "white") +
+    scale_x_date(breaks = edges[seq(1, length(edges), by = step)], date_labels = "%d %b %Y", expand = expansion(0)) +
+    scale_y_continuous(breaks = function(l) unique(floor(pretty(l))), expand = expansion(mult = c(0, 0.05))) +
+    labs(x = "Newest datetime in table (bars span the month between two boundaries)", y = "Tables")
 } else cat("No datetime columns found, so no freshness to show.")
 ```
 
