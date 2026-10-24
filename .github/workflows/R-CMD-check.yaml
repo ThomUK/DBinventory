@@ -24,7 +24,7 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::rcmdcheck, any::duckdb, any::DT
+          extra-packages: any::rcmdcheck, any::duckdb, any::DT, ThomUK/synthetic-hospital-data/fakehospdata
           needs: check
 
       - uses: r-lib/actions/check-r-package@v2
