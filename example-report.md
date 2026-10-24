@@ -9,7 +9,7 @@ October 24, 2026
 **46** tables and views, **523** columns, **30,233** rows in total.
 Profiled 523 columns in 46 tables.
 
-Last run started 2026-10-24 18:34:29 UTC against
+Last run started 2026-10-24 18:36:22 UTC against
 `/home/runner/work/_temp/Library/DBinventory/extdata/fakehosp.sqlite`
 (sqlite dialect), sampling tables above 1,000,000 rows, top 10 values
 per column, literal values suppressed for identifiers, free text and
@@ -80,5 +80,9 @@ distinct-count magnitude, min, max and top values). A starting point for
 the duplicate map, not a verdict: value-overlap tests come next.
 
 ## Column profile
+
+`top_values` lists the most frequent values with their counts; blank
+where values are suppressed or the column has too many distinct values
+for a frequency table to be useful.
 
 ## Run log
