@@ -74,24 +74,42 @@ show(as.data.frame(t[, cols]))
 
 ```{r freshness, fig.height=4}
 fresh <- tables[!is.na(tables$newest_datetime), ]
-if (nrow(fresh) > 0) {
-  d <- as.Date(substr(fresh$newest_datetime, 1, 10))
-  d <- d[!is.na(d)]
-  if (length(d) > 0) {
-    op <- par(mar = c(4, 4, 1, 1))
-    hist(d, breaks = "months", freq = TRUE, main = "", xlab = "Newest datetime in table", ylab = "Tables", col = "#4C78A8", border = "white")
-    par(op)
-  }
+d <- if (nrow(fresh) > 0) as.Date(substr(fresh$newest_datetime, 1, 10)) else as.Date(character())
+d <- d[!is.na(d)]
+if (length(d) > 0) {
+  month_start <- function(x) as.Date(format(x, "%Y-%m-01"))
+  first <- month_start(min(d))
+  last <- month_start(max(d))
+  edges <- seq(first, by = "month", length.out = length(seq(first, last, by = "month")) + 1)
+  n_months <- length(edges) - 1
+  step <- max(1, ceiling(n_months / 12))          # at most about twelve labels
+  ticks <- edges[seq(1, length(edges), by = step)]
+  op <- par(mar = c(7, 4, 1, 1))
+  hist(d, breaks = edges, freq = TRUE, right = FALSE, main = "", xaxt = "n",
+       xlab = "", ylab = "Tables", col = "#4C78A8", border = "white")
+  axis.Date(1, at = ticks, format = "%d %b %Y", las = 2, cex.axis = 0.8)
+  title(xlab = "Month of newest datetime in table", line = 5.5)
+  par(op)
 } else cat("No datetime columns found, so no freshness to show.")
 ```
 
 ### Row counts
 
+Bins are log-spaced so that reference tables and multi-million-row logs both show; the axis is labelled with row counts.
+
 ```{r rows, fig.height=4}
 rc <- tables$row_count[!is.na(tables$row_count) & tables$row_count > 0]
 if (length(rc) > 0) {
-  op <- par(mar = c(4, 4, 1, 1))
-  hist(log10(rc), breaks = 20, main = "", xlab = "log10(rows)", ylab = "Tables", col = "#4C78A8", border = "white")
+  lo <- floor(log10(min(rc)))
+  hi <- ceiling(log10(max(rc)))
+  if (hi == lo) hi <- lo + 1
+  edges <- seq(lo, hi, by = 0.25)                 # four bins per power of ten
+  powers <- seq(lo, hi)
+  op <- par(mar = c(7, 4, 1, 1))
+  hist(log10(rc), breaks = edges, main = "", xaxt = "n", xlab = "",
+       ylab = "Tables", col = "#4C78A8", border = "white")
+  axis(1, at = powers, labels = format(10^powers, big.mark = ",", scientific = FALSE, trim = TRUE), las = 2, cex.axis = 0.8)
+  title(xlab = "Rows in table", line = 5.5)
   par(op)
 }
 ```
