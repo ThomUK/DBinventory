@@ -1,0 +1,41 @@
+Package: DBinventory
+Title: Inventory and Column Profile of a Database or Parquet Store
+Version: 0.1.0
+Authors@R: 
+    person("Tom", "Smith", , "tomsmith_uk@hotmail.com", role = c("aut", "cre"))
+Description: Builds the first two artefacts of a data-documentation effort from
+    a read-only connection: an inventory of every table and column (schema,
+    name, type, row count, size, newest datetime, when profiled) and a per-column
+    profile (null rate, distinct count, min and max, top values, inferred
+    semantic type, uniqueness, fingerprint hashes). Works against any 'DBI'
+    connection with dialect support for Microsoft SQL Server, DuckDB (including
+    Parquet files and directories), SQLite and PostgreSQL. Results are written
+    to a SQLite store with per-table checkpointing so long runs can resume, and
+    can be exported to CSV or Parquet and rendered as a Quarto report.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1
+URL: https://github.com/ThomUK/DBinventory
+BugReports: https://github.com/ThomUK/DBinventory/issues
+Depends: 
+    R (>= 4.1)
+Imports: 
+    cli,
+    DBI,
+    digest,
+    jsonlite,
+    rlang,
+    tibble,
+    utils
+Suggests: 
+    arrow,
+    DT,
+    duckdb,
+    knitr,
+    odbc,
+    quarto,
+    rmarkdown,
+    RSQLite,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3

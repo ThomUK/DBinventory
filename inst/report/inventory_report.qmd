@@ -1,0 +1,176 @@
+---
+title: "`r params$title`"
+date: "`r format(Sys.Date(), '%d %B %Y')`"
+params:
+  store: ""
+  title: "Database inventory and column profile"
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    embed-resources: true
+    theme: flatly
+    code-fold: true
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r setup}
+#| echo: false
+# chunk defaults set here as well as in the YAML so the rmarkdown fallback matches Quarto
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+library(DBinventory)
+st <- store_open(params$store)
+tables  <- store_read(st, "inventory_tables")
+columns <- store_read(st, "inventory_columns")
+profile <- store_read(st, "column_profile")
+log     <- store_read(st, "profile_log")
+meta    <- store_read(st, "run_meta")
+store_close(st)
+if (is.null(profile)) profile <- DBinventory:::empty_profile()
+if (is.null(log)) log <- data.frame(status = character())
+has_dt <- requireNamespace("DT", quietly = TRUE)
+show <- function(x, ...) {
+  if (has_dt) DT::datatable(x, rownames = FALSE, filter = "top", extensions = "Buttons",
+                            options = list(pageLength = 15, scrollX = TRUE, dom = "Bfrtip", buttons = c("csv", "copy")), ...)
+  else knitr::kable(utils::head(x, 200))
+}
+fmt <- function(x) format(x, big.mark = ",", scientific = FALSE, trim = TRUE)
+bytes <- function(b) ifelse(is.na(b), "", ifelse(b >= 1e9, paste0(round(b / 1e9, 1), " GB"),
+         ifelse(b >= 1e6, paste0(round(b / 1e6, 1), " MB"), paste0(round(b / 1e3), " kB"))))
+```
+
+```{r headline, results="asis"}
+n_err <- sum(log$status == "error")
+cat(sprintf(
+  "**%s** tables and views, **%s** columns, **%s** rows in total%s. Profiled %s columns in %s tables%s.\n\n",
+  fmt(nrow(tables)), fmt(nrow(columns)), fmt(sum(tables$row_count, na.rm = TRUE)),
+  if (any(!is.na(tables$size_bytes))) sprintf(", %s on disk", bytes(sum(tables$size_bytes, na.rm = TRUE))) else "",
+  fmt(nrow(profile)), fmt(length(unique(paste(profile$table_schema, profile$table_name)))),
+  if (n_err > 0) sprintf("; **%d tables failed** (see the run log)", n_err) else ""
+))
+if (!is.null(meta) && nrow(meta) > 0) {
+  m <- meta[nrow(meta), ]
+  cat(sprintf("Last run started %s UTC against `%s` (%s dialect), sampling tables above %s rows, top %d values per column, literal values %s.\n\n",
+      m$started_at, m$source, m$dialect, fmt(m$sample_rows), m$top_n,
+      if (isTRUE(as.logical(m$keep_values))) "kept" else "suppressed for identifiers, free text and personal-data names"))
+}
+```
+
+## Tables
+
+Ranked by row count. `newest_datetime` is the latest value in any date or datetime column, the freshness signal. Tables with no datetime column show blank.
+
+```{r tables}
+t <- tables[order(-ifelse(is.na(tables$row_count), -1, tables$row_count)), ]
+t$size <- bytes(t$size_bytes)
+cols <- intersect(c("table_schema", "table_name", "table_type", "n_columns", "row_count", "size", "newest_datetime", "newest_datetime_column"), names(t))
+show(as.data.frame(t[, cols]))
+```
+
+### Freshness
+
+```{r freshness, fig.height=4}
+fresh <- tables[!is.na(tables$newest_datetime), ]
+if (nrow(fresh) > 0) {
+  d <- as.Date(substr(fresh$newest_datetime, 1, 10))
+  d <- d[!is.na(d)]
+  if (length(d) > 0) {
+    op <- par(mar = c(4, 4, 1, 1))
+    hist(d, breaks = "months", freq = TRUE, main = "", xlab = "Newest datetime in table", ylab = "Tables", col = "#4C78A8", border = "white")
+    par(op)
+  }
+} else cat("No datetime columns found, so no freshness to show.")
+```
+
+### Row counts
+
+```{r rows, fig.height=4}
+rc <- tables$row_count[!is.na(tables$row_count) & tables$row_count > 0]
+if (length(rc) > 0) {
+  op <- par(mar = c(4, 4, 1, 1))
+  hist(log10(rc), breaks = 20, main = "", xlab = "log10(rows)", ylab = "Tables", col = "#4C78A8", border = "white")
+  par(op)
+}
+```
+
+## Columns
+
+### Type mix
+
+```{r types}
+tc <- as.data.frame(table(type_class = columns$type_class), stringsAsFactors = FALSE)
+tc <- tc[order(-tc$Freq), ]
+names(tc)[2] <- "columns"
+knitr::kable(tc, row.names = FALSE)
+```
+
+### Inferred semantic types
+
+A first draft: `identifier`, `code`, `category`, `flag`, `date`, `datetime`, `free_text`, `count`, `measure`, `constant`, `empty`. For a person to confirm, not a finding.
+
+```{r semantic}
+if (nrow(profile) > 0) {
+  sem <- as.data.frame(table(semantic_type = profile$semantic_type), stringsAsFactors = FALSE)
+  sem <- sem[order(-sem$Freq), ]
+  names(sem)[2] <- "columns"
+  knitr::kable(sem, row.names = FALSE)
+}
+```
+
+### Nulls and uniqueness
+
+```{r nulls, fig.height=4}
+if (nrow(profile) > 0) {
+  op <- par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
+  hist(profile$null_rate[!is.na(profile$null_rate)], breaks = 20, main = "Null rate per column", xlab = "Null rate", col = "#4C78A8", border = "white")
+  hist(profile$distinct_rate[!is.na(profile$distinct_rate)], breaks = 20, main = "Distinct rate per column", xlab = "Distinct / non-null", col = "#F58518", border = "white")
+  par(op)
+}
+```
+
+```{r empties, results="asis"}
+if (nrow(profile) > 0) {
+  empty <- profile[profile$semantic_type %in% c("empty", "constant"), ]
+  cat(sprintf("**%d** columns are entirely null and **%d** hold a single constant value: candidates to drop from any dictionary.\n\n",
+      sum(profile$semantic_type == "empty"), sum(profile$semantic_type == "constant")))
+}
+```
+
+## Candidate duplicate columns
+
+Columns in different tables with the same value fingerprint (type, distinct-count magnitude, min, max and top values). A starting point for the duplicate map, not a verdict: value-overlap tests come next.
+
+```{r dupes}
+if (nrow(profile) > 0) {
+  dup <- duplicate_candidates(profile)
+  if (nrow(dup) > 0) show(as.data.frame(dup)) else cat("No cross-table fingerprint matches.")
+}
+```
+
+## Column profile
+
+```{r profile}
+if (nrow(profile) > 0) {
+  p <- profile
+  p$null_rate <- round(p$null_rate, 3)
+  p$distinct_rate <- round(p$distinct_rate, 3)
+  p$mean_value <- round(p$mean_value, 3)
+  p$mean_length <- round(p$mean_length, 1)
+  cols <- c("table_schema", "table_name", "column_name", "data_type", "semantic_type", "row_count", "null_rate",
+            "distinct_count", "distinct_rate", "is_unique", "min_value", "max_value", "mean_value", "top_values", "sampled")
+  show(as.data.frame(p[, intersect(cols, names(p))]))
+}
+```
+
+## Run log
+
+```{r log}
+if (nrow(log) > 0) {
+  l <- log[order(log$logged_at, decreasing = TRUE), ]
+  l$seconds <- round(l$seconds, 1)
+  show(as.data.frame(l))
+}
+```

@@ -1,0 +1,10 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+*.sqlite-journal
+_output/
+inst/doc
+/*.sqlite
+!inst/extdata/*.sqlite
+*.html
