@@ -91,20 +91,20 @@ profiled on a sample materialised in a temporary table.
 
 prof <- db_profile(con, inv, progress = FALSE)
 prof[prof$table_name == "pas_patients",
-     c("column_name", "null_rate", "distinct_count", "is_unique", "semantic_type", "values_suppressed")]
-#> # A tibble: 10 × 6
-#>    column_name         null_rate distinct_count is_unique semantic_type
-#>    <chr>                   <dbl>          <dbl> <lgl>     <chr>        
-#>  1 mrn                     0               1000 TRUE      identifier   
-#>  2 nhs_number              0.007            993 TRUE      identifier   
-#>  3 nhs_number_status       0                  2 FALSE     code         
-#>  4 sex                     0                  2 FALSE     code         
-#>  5 dob                     0                981 FALSE     date         
-#>  6 ethnicity               0                 17 FALSE     code         
-#>  7 gp_practice             0                 90 FALSE     category     
-#>  8 postcode                0                995 FALSE     identifier   
-#>  9 registered_datetime     0               1000 TRUE      datetime     
-#> 10 date_of_death           0.987             13 TRUE      date         
+     c("column_name", "null_rate", "distinct_count", "is_unique", "pk_candidate", "semantic_type", "values_suppressed")]
+#> # A tibble: 10 × 7
+#>    column_name     null_rate distinct_count is_unique pk_candidate semantic_type
+#>    <chr>               <dbl>          <dbl> <lgl>     <lgl>        <chr>        
+#>  1 mrn                 0               1000 TRUE      TRUE         identifier   
+#>  2 nhs_number          0.007            993 TRUE      FALSE        identifier   
+#>  3 nhs_number_sta…     0                  2 FALSE     FALSE        code         
+#>  4 sex                 0                  2 FALSE     FALSE        code         
+#>  5 dob                 0                981 FALSE     FALSE        date         
+#>  6 ethnicity           0                 17 FALSE     FALSE        code         
+#>  7 gp_practice         0                 90 FALSE     FALSE        category     
+#>  8 postcode            0                995 FALSE     FALSE        identifier   
+#>  9 registered_dat…     0               1000 TRUE      FALSE        datetime     
+#> 10 date_of_death       0.987             13 TRUE      FALSE        date         
 #> # ℹ 1 more variable: values_suppressed <lgl>
 ```
 

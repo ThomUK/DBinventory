@@ -7,9 +7,9 @@ Published
 October 24, 2026
 
 **46** tables and views, **523** columns, **30,233** rows in total.
-Profiled 523 columns in 46 tables.
+Profiled 523 columns in 46 tables in 2 seconds.
 
-Last run started 2026-10-24 19:08:21 UTC against
+Last run started 2026-10-24 19:11:32 UTC against
 `/home/runner/work/_temp/Library/DBinventory/extdata/fakehosp.sqlite`
 (sqlite dialect), sampling tables above 1,000,000 rows, top 10 values
 per column, literal values suppressed for identifiers, free text and
@@ -88,14 +88,8 @@ value-overlap tests confirm or reject it in the next stage.
 
 ## Column profile
 
-`top_values` lists the most frequent values with their counts; blank
-where values are suppressed or the column has too many distinct values
-for a frequency table to be useful.
-
-## Run log
-
-One row per table per profiling attempt, with its outcome, how long it
-took and any error message. It is the checkpoint: a rerun against the
-same store skips tables whose latest entry is `ok` and retries the rest.
-Errors here usually mean a broken view or an object the login cannot
-read.
+`pk_candidate` marks columns that are unique, never null and of a type
+keys are made of; where `sampled` is true that is evidence from the
+sample only. `top_values` lists the most frequent values with their
+counts; blank where values are suppressed or the column has too many
+distinct values for a frequency table to be useful.
