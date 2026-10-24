@@ -82,7 +82,10 @@ inventory_run(
 - sample_rows:
 
   Tables with more rows than this are profiled on a sample of roughly
-  this many rows. `Inf` disables sampling.
+  this many rows. `Inf` disables sampling, which is the faster choice on
+  DuckDB and Parquet, where aggregates over the full table cost less
+  than materialising a sample; the threshold is for engines such as SQL
+  Server where a full scan is the expensive part.
 
 - top_n:
 

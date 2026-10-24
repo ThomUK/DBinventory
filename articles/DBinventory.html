@@ -88,7 +88,7 @@ cache and returns a DuckDB connection of views, which
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">con</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/db_connect.html">db_connect</a></span><span class="op">(</span><span class="fu">fakehospdata</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/fakehospdata/man/fh_connect.html" class="external-link">fh_connect</a></span><span class="op">(</span><span class="st">"sample"</span>, quiet <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; duckdb keeps downloaded extensions and secrets in a temporary directory:</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> /tmp/Rtmppxq3oQ/duckdb</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> /tmp/RtmpG5j3Ca/duckdb</span></span>
 <span><span class="co">#&gt; This is removed when the R session ends.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Extensions are re-downloaded each session.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Secrets are lost.</span></span>
@@ -112,7 +112,7 @@ narrow the scope.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">inv</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/db_inventory.html">db_inventory</a></span><span class="op">(</span><span class="va">con</span>, schema <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"layer1"</span>, <span class="st">"reference"</span><span class="op">)</span>, progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> 23 tables found (duckdb dialect)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Inventory of 23 tables and 207 columns in 0.2s</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Inventory of 23 tables and 207 columns in 0.3s</span></span>
 <span><span class="va">inv</span><span class="op">$</span><span class="va">tables</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"table_schema"</span>, <span class="st">"table_name"</span>, <span class="st">"n_columns"</span>, <span class="st">"row_count"</span>, <span class="st">"newest_datetime"</span>, <span class="st">"newest_datetime_column"</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 23 × 6</span></span></span>
 <span><span class="co">#&gt;    table_schema table_name                  n_columns row_count newest_datetime </span></span>
@@ -222,12 +222,12 @@ column in other tables still match on fingerprint:</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>        2 derived.op_appointments.mrn_as_recorded; derived.op_appointments.pe…</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>        2 derived.op_appointments.consultant_code; layer1.pas_outpatient_appo…</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>        2 derived.op_appointments.clinic_code; layer1.pas_outpatient_appointm…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>        2 derived.op_appointments.dnadate; layer1.pas_outpatient_appointments…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>        2 derived.op_appointments.apptdate; layer1.pas_outpatient_appointment…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>        2 derived.op_appointments.cancelled_datetime; layer1.pas_outpatient_a…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>        2 reference.consultants.tfc; reference.specialties.tfc                </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>        2 derived.op_appointments.attendkey; layer1.pas_outpatient_appointmen…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>        2 derived.op_appointments.booked_datetime; layer1.pas_outpatient_appo…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>        2 derived.op_appointments.attendkey; layer1.pas_outpatient_appointmen…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>        2 derived.op_appointments.dnadate; layer1.pas_outpatient_appointments…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>        2 reference.consultants.tfc; reference.specialties.tfc                </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>        2 derived.op_appointments.apptdate; layer1.pas_outpatient_appointment…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>        2 derived.op_appointments.booked_datetime; layer1.pas_outpatient_appo…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>        2 derived.op_appointments.cancelled_datetime; layer1.pas_outpatient_a…</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>        2 derived.op_appointments.referral_id; layer1.pas_outpatient_appointm…</span></span></code></pre></div>
 </div>
 <div class="section level2">

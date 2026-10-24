@@ -93,7 +93,10 @@ built first (row counts are needed to decide on sampling).</p></dd>
 
 <dt id="arg-sample-rows">sample_rows<a class="anchor" aria-label="anchor" href="#arg-sample-rows"></a></dt>
 <dd><p>Tables with more rows than this are profiled on a
-sample of roughly this many rows. <code>Inf</code> disables sampling.</p></dd>
+sample of roughly this many rows. <code>Inf</code> disables sampling, which is the
+faster choice on DuckDB and Parquet, where aggregates over the full table
+cost less than materialising a sample; the threshold is for engines such
+as SQL Server where a full scan is the expensive part.</p></dd>
 
 
 <dt id="arg-top-n">top_n<a class="anchor" aria-label="anchor" href="#arg-top-n"></a></dt>
