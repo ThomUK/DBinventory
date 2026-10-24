@@ -35,7 +35,9 @@ Reads \code{INFORMATION_SCHEMA.TABLES} (or the engine's equivalent) and applies
 optional filters. System schemas are excluded.
 }
 \examples{
-con <- fakehosp_connection()
-db_tables(con, include = "^main\\\\.pas_")
-DBI::dbDisconnect(con)
+\dontrun{
+con <- fakehospdata::fh_connect("sample")   # the synthetic trust
+db_tables(con, include = "^layer1\\\\.pas_")
+DBI::dbDisconnect(con, shutdown = TRUE)
+}
 }

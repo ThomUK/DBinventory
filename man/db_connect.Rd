@@ -31,7 +31,9 @@ files becomes an in-memory DuckDB database of views, see
 }
 }
 \examples{
-con <- db_connect(fakehosp_path())
-db_tables(con)[1:3, ]
-DBI::dbDisconnect(con)
+\dontrun{
+con <- db_connect("Driver={ODBC Driver 18 for SQL Server};Server=warehouse;Database=DW;Trusted_Connection=yes;")
+con <- db_connect("warehouse_extract.sqlite")
+con <- db_connect("data/v2/sample")            # a directory of Parquet files
+}
 }

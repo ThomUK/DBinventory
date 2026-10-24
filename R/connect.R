@@ -16,9 +16,11 @@
 #' @param ... Passed to the underlying `DBI::dbConnect()`.
 #' @return A `DBIConnection`. The caller disconnects it.
 #' @examples
-#' con <- db_connect(fakehosp_path())
-#' db_tables(con)[1:3, ]
-#' DBI::dbDisconnect(con)
+#' \dontrun{
+#' con <- db_connect("Driver={ODBC Driver 18 for SQL Server};Server=warehouse;Database=DW;Trusted_Connection=yes;")
+#' con <- db_connect("warehouse_extract.sqlite")
+#' con <- db_connect("data/v2/sample")            # a directory of Parquet files
+#' }
 #' @export
 db_connect <- function(x, ...) {
   if (inherits(x, "DBIConnection")) return(x)
@@ -135,30 +137,4 @@ parquet_plan <- function(path, same_schema = function(files) FALSE) {
   out <- do.call(rbind, rows)
   if (is.null(out)) return(data.frame(schema = character(), table = character(), source = character()))
   out[!duplicated(paste(out$schema, out$table)), , drop = FALSE]
-}
-
-#' The bundled synthetic hospital database
-#'
-#' A SQLite file built from the sample of
-#' <https://github.com/ThomUK/synthetic-hospital-data>: 45 tables and a view
-#' from a fictional NHS trust, capped at 1,000 rows each, with the declared
-#' column types preserved. Used by the examples and tests; handy for trying
-#' the package before pointing it at a real warehouse.
-#'
-#' @return `fakehosp_path()` gives the file path; `fakehosp_connection()`
-#'   opens a read-only `RSQLite` connection to it.
-#' @examples
-#' con <- fakehosp_connection()
-#' nrow(db_tables(con))
-#' DBI::dbDisconnect(con)
-#' @export
-fakehosp_path <- function() {
-  system.file("extdata", "fakehosp.sqlite", package = "DBinventory", mustWork = TRUE)
-}
-
-#' @rdname fakehosp_path
-#' @export
-fakehosp_connection <- function() {
-  if (!has_pkg("RSQLite")) rlang::abort("fakehosp_connection() needs the RSQLite package")
-  DBI::dbConnect(RSQLite::SQLite(), fakehosp_path(), flags = RSQLite::SQLITE_RO)
 }

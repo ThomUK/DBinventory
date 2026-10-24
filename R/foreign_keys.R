@@ -59,11 +59,13 @@
 #'   `fk_evidence` (the scoring components as text) and `fk_n_targets` added
 #'   or replaced.
 #' @examples
-#' con <- fakehosp_connection()
+#' \dontrun{
+#' con <- fakehospdata::fh_connect("sample")
 #' inv <- db_inventory(con, include = c("pas_patients$", "pas_adt_events$"), progress = FALSE)
 #' prof <- db_profile(con, inv, progress = FALSE)
 #' prof[prof$fk_candidate, c("table_name", "column_name", "fk_target", "fk_confidence")]
-#' DBI::dbDisconnect(con)
+#' DBI::dbDisconnect(con, shutdown = TRUE)
+#' }
 #' @export
 infer_foreign_keys <- function(profile, min_confidence = 0.6) {
   p <- as.data.frame(profile, stringsAsFactors = FALSE)

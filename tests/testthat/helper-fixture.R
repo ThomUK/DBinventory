@@ -1,8 +1,10 @@
 skip_if_no_sqlite <- function() testthat::skip_if_not_installed("RSQLite")
 
+fixture_path <- function() testthat::test_path("fixtures", "fakehosp_tiny.sqlite")
+
 fixture_con <- function() {
   skip_if_no_sqlite()
-  con <- fakehosp_connection()
+  con <- DBI::dbConnect(RSQLite::SQLite(), fixture_path(), flags = RSQLite::SQLITE_RO)
   withr::defer(DBI::dbDisconnect(con), envir = parent.frame())
   con
 }

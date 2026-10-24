@@ -28,7 +28,7 @@ test_that("db_inventory computes counts, freshness and column totals", {
   expect_output(print(inv), "db_inventory")
   t <- inv$tables
   pp <- t[t$table_name == "pas_patients", ]
-  expect_equal(pp$row_count, 1000)
+  expect_equal(pp$row_count, 200)
   expect_equal(pp$n_columns, 10)
   expect_equal(pp$n_datetime_columns, 3)
   expect_match(pp$newest_datetime, "^20\\d\\d-\\d\\d-\\d\\d")

@@ -32,6 +32,7 @@ Suggests:
     arrow,
     DT,
     duckdb,
+    fakehospdata,
     ggplot2,
     knitr,
     odbc,
@@ -42,4 +43,4 @@ Suggests:
     testthat (>= 3.0.0),
     withr
 Config/testthat/edition: 3
-VignetteBuilder: knitr
+Remotes: ThomUK/synthetic-hospital-data/fakehospdata

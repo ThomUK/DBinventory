@@ -13,9 +13,11 @@
 #' @return A tibble with `table_catalog`, `table_schema`, `table_name`,
 #'   `table_type`.
 #' @examples
-#' con <- fakehosp_connection()
-#' db_tables(con, include = "^main\\.pas_")
-#' DBI::dbDisconnect(con)
+#' \dontrun{
+#' con <- fakehospdata::fh_connect("sample")   # the synthetic trust
+#' db_tables(con, include = "^layer1\\.pas_")
+#' DBI::dbDisconnect(con, shutdown = TRUE)
+#' }
 #' @export
 db_tables <- function(con, schema = NULL, include = NULL, exclude = NULL, views = TRUE, dialect = NULL) {
   d <- db_dialect(con, dialect)
@@ -40,10 +42,12 @@ db_tables <- function(con, schema = NULL, include = NULL, exclude = NULL, views 
 #'   `character_maximum_length`, `numeric_precision`, `numeric_scale`,
 #'   `is_nullable`.
 #' @examples
-#' con <- fakehosp_connection()
+#' \dontrun{
+#' con <- fakehospdata::fh_connect("sample")
 #' cols <- db_columns(con, db_tables(con, include = "pas_patients"))
 #' cols[, c("column_name", "data_type", "type_class")]
-#' DBI::dbDisconnect(con)
+#' DBI::dbDisconnect(con, shutdown = TRUE)
+#' }
 #' @export
 db_columns <- function(con, tables = NULL, dialect = NULL) {
   d <- db_dialect(con, dialect)
@@ -229,10 +233,12 @@ db_table_sizes <- function(con, tables = NULL, dialect = NULL) {
 #'   `newest_datetime`, `newest_datetime_column`, `inventoried_at`) and
 #'   `columns` (one row per column, see [db_columns()]).
 #' @examples
-#' con <- fakehosp_connection()
+#' \dontrun{
+#' con <- fakehospdata::fh_connect("sample")
 #' inv <- db_inventory(con, include = "pas_", progress = FALSE)
 #' inv$tables[, c("table_name", "n_columns", "row_count", "newest_datetime")]
-#' DBI::dbDisconnect(con)
+#' DBI::dbDisconnect(con, shutdown = TRUE)
+#' }
 #' @export
 db_inventory <- function(con, schema = NULL, include = NULL, exclude = NULL, views = TRUE,
                          row_counts = TRUE, freshness = TRUE, sizes = TRUE,

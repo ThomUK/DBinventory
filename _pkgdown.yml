@@ -14,15 +14,18 @@ navbar:
     left: [intro, reference, example, articles, news]
     right: [search, github]
   components:
+    intro:
+      text: Get started
+      href: articles/DBinventory.html
     example:
-      text: Example Report
+      text: Example Reports
       href: articles/example_report.html
 
 articles:
 - title: Articles
   navbar: ~
   contents:
-  - DBinventory
+  - articles/DBinventory
   - articles/example_report
 
 reference:
@@ -63,6 +66,3 @@ reference:
   contents:
   - db_dialect
   - type_class
-- title: Synthetic test data
-  contents:
-  - fakehosp_path

@@ -22,7 +22,7 @@
 #' @return The path of the rendered file, invisibly.
 #' @examples
 #' \dontrun{
-#' out <- inventory_run(fakehosp_path(), store = "fakehosp_inventory.sqlite", organisation = "Fake NHS Trust")
+#' out <- inventory_run(fakehospdata::fh_connect("sample"), store = "fakehosp_inventory.sqlite", organisation = "Fake NHS Trust")
 #' render_report("fakehosp_inventory.sqlite", "fakehosp_inventory.html")   # titled "Fake NHS Trust: ..."
 #' }
 #' @export

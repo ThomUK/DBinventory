@@ -79,9 +79,11 @@ legitimately matches several.
 }
 
 \examples{
-con <- fakehosp_connection()
+\dontrun{
+con <- fakehospdata::fh_connect("sample")
 inv <- db_inventory(con, include = c("pas_patients$", "pas_adt_events$"), progress = FALSE)
 prof <- db_profile(con, inv, progress = FALSE)
 prof[prof$fk_candidate, c("table_name", "column_name", "fk_target", "fk_confidence")]
-DBI::dbDisconnect(con)
+DBI::dbDisconnect(con, shutdown = TRUE)
+}
 }

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Build the SQLite test fixture from the synthetic-hospital-data sample.
+"""Build the small SQLite fixture the tests run on, from the synthetic-hospital-data sample.
 
 Usage:
-    python3 data-raw/build_fixture.py <sample_dir> <out.sqlite> [rows_per_table]
+    python3 tests/testthat/fixtures/build_fixture.py <sample_dir> tests/testthat/fixtures/fakehosp_tiny.sqlite [rows_per_table]
 
 <sample_dir> is data/v2/sample of https://github.com/ThomUK/synthetic-hospital-data.
 Every table in layer1/, reference/, derived/ and aggregate/ is written with at

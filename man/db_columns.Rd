@@ -24,8 +24,10 @@ A tibble with one row per column: \code{table_schema}, \code{table_name},
 List the columns of a set of tables
 }
 \examples{
-con <- fakehosp_connection()
+\dontrun{
+con <- fakehospdata::fh_connect("sample")
 cols <- db_columns(con, db_tables(con, include = "pas_patients"))
 cols[, c("column_name", "data_type", "type_class")]
-DBI::dbDisconnect(con)
+DBI::dbDisconnect(con, shutdown = TRUE)
+}
 }

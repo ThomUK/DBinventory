@@ -85,15 +85,15 @@ test_that("sensitive values are suppressed by default but hashes survive", {
 test_that("large tables are sampled through a temporary table", {
   con <- fixture_con()
   inv <- db_inventory(con, include = "pas_adt_events", progress = FALSE)
-  prof <- db_profile(con, inv, sample_rows = 200, progress = FALSE)
+  prof <- db_profile(con, inv, sample_rows = 50, progress = FALSE)
   expect_true(all(prof$sampled))
   expect_equal(unique(prof$sample_method), "random_order")
-  expect_equal(unique(prof$rows_profiled), 200)
-  expect_equal(unique(prof$row_count), 1000)
+  expect_equal(unique(prof$rows_profiled), 50)
+  expect_equal(unique(prof$row_count), 200)
   expect_false(any(grepl("^dbinv_", DBI::dbListTables(con))))
   full <- db_profile(con, inv, sample_rows = Inf, progress = FALSE)
   expect_false(any(full$sampled))
-  expect_equal(unique(full$rows_profiled), 1000)
+  expect_equal(unique(full$rows_profiled), 200)
 })
 
 test_that("wide tables are aggregated in batches", {
@@ -113,8 +113,9 @@ test_that("semantic inference on the synthetic trust is sensible", {
   expect_equal(sem("pas_patients", "mrn"), "identifier")
   expect_equal(sem("pas_patients", "sex"), "code")
   expect_equal(sem("pas_patients", "dob"), "date")
-  expect_equal(sem("pas_patients", "nhs_number_status"), "code")
-  expect_false(prof$values_suppressed[prof$table_name == "pas_patients" & prof$column_name == "nhs_number_status"])
+  expect_equal(sem("pas_patients", "ethnicity"), "code")
+  expect_false(prof$values_suppressed[prof$table_name == "pas_patients" & prof$column_name == "ethnicity"])
+  expect_equal(sem("pas_patients", "nhs_number_status"), "constant")   # one value in the 200-row fixture
   expect_equal(sem("endo_procedures", "ProcDate"), "date")      # a date stored as text
   expect_equal(sem("endo_procedures", "StartTime"), "time")
   expect_equal(sem("endo_procedures", "Report"), "free_text")

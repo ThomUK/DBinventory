@@ -81,9 +81,11 @@ profiled on a sample. Results can be checkpointed per table into a store
 so that an interrupted run resumes where it stopped.
 }
 \examples{
-con <- fakehosp_connection()
+\dontrun{
+con <- fakehospdata::fh_connect("sample")
 inv <- db_inventory(con, include = "pas_patients", progress = FALSE)
 prof <- db_profile(con, inv, progress = FALSE)
 prof[, c("column_name", "null_rate", "distinct_count", "semantic_type")]
-DBI::dbDisconnect(con)
+DBI::dbDisconnect(con, shutdown = TRUE)
+}
 }

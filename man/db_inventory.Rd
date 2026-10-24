@@ -46,8 +46,10 @@ Artefact 1 of the roadmap. Combines \code{\link[=db_tables]{db_tables()}}, \code
 that needs only \code{SELECT} permission on the objects.
 }
 \examples{
-con <- fakehosp_connection()
+\dontrun{
+con <- fakehospdata::fh_connect("sample")
 inv <- db_inventory(con, include = "pas_", progress = FALSE)
 inv$tables[, c("table_name", "n_columns", "row_count", "newest_datetime")]
-DBI::dbDisconnect(con)
+DBI::dbDisconnect(con, shutdown = TRUE)
+}
 }

@@ -29,7 +29,7 @@ test_that("inventory_run does everything from a path and exports CSV", {
   skip_if_no_sqlite()
   store <- withr::local_tempfile(fileext = ".sqlite")
   export <- withr::local_tempdir()
-  out <- inventory_run(fakehosp_path(), store = store, export_dir = export, organisation = "Fake NHS Trust",
+  out <- inventory_run(fixture_path(), store = store, export_dir = export, organisation = "Fake NHS Trust",
                        include = c("pas_patients$", "v_emergency"), progress = FALSE)
   expect_s3_class(out$inventory, "db_inventory")
   expect_s3_class(out$profile, "column_profile")
@@ -47,7 +47,7 @@ test_that("inventory_run does everything from a path and exports CSV", {
   expect_equal(DBinventory:::store_organisation(store), "Fake NHS Trust")
 
   # a second run resumes: nothing new is profiled, but the store is intact
-  out2 <- inventory_run(fakehosp_path(), store = store, include = c("pas_patients$", "v_emergency"), progress = FALSE)
+  out2 <- inventory_run(fixture_path(), store = store, include = c("pas_patients$", "v_emergency"), progress = FALSE)
   expect_equal(nrow(out2$profile), nrow(out$profile))
 })
 
@@ -73,7 +73,7 @@ test_that("the report title is prefixed with the organisation", {
   skip_if_not_installed("rmarkdown")
   skip_if(!rmarkdown::pandoc_available())
   store <- withr::local_tempfile(fileext = ".sqlite")
-  inventory_run(fakehosp_path(), store = store, include = "sites$", organisation = "Fake NHS Trust", progress = FALSE)
+  inventory_run(fixture_path(), store = store, include = "sites$", organisation = "Fake NHS Trust", progress = FALSE)
   out <- withr::local_tempfile(fileext = ".html")
   render_report(store, out, engine = "rmarkdown")
   html <- paste(readLines(out, warn = FALSE), collapse = "\n")

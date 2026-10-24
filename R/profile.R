@@ -44,11 +44,13 @@
 #'   `column_fingerprint`, `rows_profiled`, `sampled`, `sample_method`,
 #'   `profiled_at`.
 #' @examples
-#' con <- fakehosp_connection()
+#' \dontrun{
+#' con <- fakehospdata::fh_connect("sample")
 #' inv <- db_inventory(con, include = "pas_patients", progress = FALSE)
 #' prof <- db_profile(con, inv, progress = FALSE)
 #' prof[, c("column_name", "null_rate", "distinct_count", "semantic_type")]
-#' DBI::dbDisconnect(con)
+#' DBI::dbDisconnect(con, shutdown = TRUE)
+#' }
 #' @export
 db_profile <- function(con, inventory = NULL, tables = NULL, sample_rows = 1e6, top_n = 10,
                        full_set_max = 50, top_values_max_distinct = 10000, keep_values = FALSE,

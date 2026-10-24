@@ -1,10 +1,5 @@
 ---
 title: "Getting started with DBinventory"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Getting started with DBinventory}
-  %\VignetteEngine{knitr::rmarkdown}
-  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r, include = FALSE}
@@ -14,7 +9,9 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
 DBinventory answers two questions about a database you have `SELECT` access
 to and no documentation for: *what is in it* (the inventory) and *what does
 each column hold* (the column profile). This article walks through both on
-the synthetic hospital database bundled with the package.
+the 5% sample of the [Fake NHS Trust synthetic
+dataset](https://github.com/ThomUK/synthetic-hospital-data), read through its
+`fakehospdata` package: 53 tables in five schemas, about 3.6 million rows.
 
 ```{r setup}
 library(DBinventory)
@@ -24,10 +21,11 @@ library(DBinventory)
 
 `db_connect()` takes whatever you have: a DBI connection, an ODBC connection
 string or DSN for SQL Server, a SQLite or DuckDB file, or a Parquet file or
-directory. The bundled fixture is a SQLite file.
+directory. `fakehospdata::fh_connect()` downloads the sample once into a cache
+and returns a DuckDB connection of views, which `db_connect()` passes through.
 
 ```{r connect}
-con <- db_connect(fakehosp_path())
+con <- db_connect(fakehospdata::fh_connect("sample", quiet = TRUE))
 db_dialect(con)
 ```
 
@@ -45,8 +43,8 @@ newest value in any date or datetime column as a freshness signal. Regular
 expressions on `schema.table` narrow the scope.
 
 ```{r inventory}
-inv <- db_inventory(con, include = c("pas_", "v_emergency"), progress = FALSE)
-inv$tables[, c("table_name", "table_type", "n_columns", "row_count", "newest_datetime", "newest_datetime_column")]
+inv <- db_inventory(con, schema = c("layer1", "reference"), progress = FALSE)
+inv$tables[, c("table_schema", "table_name", "n_columns", "row_count", "newest_datetime", "newest_datetime_column")]
 ```
 
 Columns carry a `type_class` that normalises engine type names, which is what
@@ -61,10 +59,12 @@ inv$columns[inv$columns$table_name == "pas_patients", c("column_name", "data_typ
 `db_profile()` runs one aggregate query per table (batched by column) plus one
 frequency query per column that has few enough distinct values for a
 frequency table to mean something. Tables above `sample_rows` are profiled on
-a sample materialised in a temporary table.
+a sample materialised in a temporary table; here that threshold is set low so
+the audit logs are sampled.
 
 ```{r profile}
-prof <- db_profile(con, inv, progress = FALSE)
+prof <- db_profile(con, inv, sample_rows = 2e5, progress = FALSE)
+table(prof$sampled)
 prof[prof$table_name == "pas_patients",
      c("column_name", "null_rate", "distinct_count", "is_unique", "pk_candidate", "semantic_type", "values_suppressed")]
 ```
@@ -82,8 +82,8 @@ The hashes are computed before suppression, so copies of a suppressed column
 in other tables still match on fingerprint:
 
 ```{r dupes}
-inv2 <- db_inventory(con, include = c("pas_outpatient_appointments", "derived_op_appointments"), progress = FALSE)
-prof2 <- db_profile(con, inv2, progress = FALSE)
+inv2 <- db_inventory(con, include = c("layer1\\.pas_outpatient_appointments", "derived\\.op_appointments", "reference\\."), progress = FALSE)
+prof2 <- db_profile(con, inv2, sample_rows = 2e5, progress = FALSE)
 duplicate_candidates(prof2)[, c("n_tables", "columns")]
 ```
 
@@ -115,5 +115,5 @@ out <- inventory_run(
 ```
 
 ```{r disconnect}
-DBI::dbDisconnect(con)
+DBI::dbDisconnect(con, shutdown = TRUE)
 ```

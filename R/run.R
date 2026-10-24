@@ -28,9 +28,14 @@
 #'   (a `column_profile`, the full contents of the store including earlier
 #'   runs) and `store` (the store path).
 #' @examples
-#' out <- inventory_run(fakehosp_path(), store = tempfile(fileext = ".sqlite"),
-#'                      include = "pas_patients", organisation = "Fake NHS Trust", progress = FALSE)
-#' out$profile[, c("column_name", "semantic_type", "null_rate")]
+#' \dontrun{
+#' # the synthetic trust, through the fakehospdata package
+#' con <- fakehospdata::fh_connect("sample")
+#' out <- inventory_run(con, store = "fakehosp_inventory.sqlite", organisation = "Fake NHS Trust",
+#'                      report = "fakehosp_inventory.html")
+#' out$profile[, c("table_name", "column_name", "semantic_type", "null_rate")]
+#' DBI::dbDisconnect(con, shutdown = TRUE)
+#' }
 #' @export
 inventory_run <- function(source, store = "db_inventory.sqlite", export_dir = NULL,
                           export_format = c("csv", "parquet"), report = NULL, organisation = NULL,
