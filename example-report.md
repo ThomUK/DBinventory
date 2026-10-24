@@ -1,15 +1,15 @@
-# Fake NHS Trust: inventory and column profile
+# Fake NHS Trust: Database inventory and column profile
 
-# Fake NHS Trust: inventory and column profile
+# Fake NHS Trust: Database inventory and column profile
 
 Published
 
 October 24, 2026
 
 **46** tables and views, **523** columns, **30,233** rows in total.
-Profiled 523 columns in 46 tables in 1 seconds.
+Profiled 523 columns in 46 tables in 2 seconds.
 
-Last run started 2026-10-24 19:48:03 UTC against
+Last run started 2026-10-24 20:00:22 UTC against
 `/home/runner/work/_temp/Library/DBinventory/extdata/fakehosp.sqlite`
 (sqlite dialect), sampling tables above 1,000,000 rows, top 10 values
 per column, literal values suppressed for identifiers, free text and

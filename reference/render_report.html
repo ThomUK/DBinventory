@@ -57,6 +57,7 @@ columns and the full column profile as a searchable table.</p>
 <span>  <span class="va">store</span>,</span>
 <span>  output_file <span class="op">=</span> <span class="st">"db_inventory_report.html"</span>,</span>
 <span>  engine <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"auto"</span>, <span class="st">"quarto"</span>, <span class="st">"rmarkdown"</span><span class="op">)</span>,</span>
+<span>  organisation <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  title <span class="op">=</span> <span class="st">"Database inventory and column profile"</span>,</span>
 <span>  quiet <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -78,8 +79,14 @@ columns and the full column profile as a searchable table.</p>
 <dd><p><code>"auto"</code>, <code>"quarto"</code> or <code>"rmarkdown"</code>.</p></dd>
 
 
+<dt id="arg-organisation">organisation<a class="anchor" aria-label="anchor" href="#arg-organisation"></a></dt>
+<dd><p>Name of the trust or organisation the database belongs
+to, used as a prefix to the title: <code>"Fake NHS Trust: Database inventory and column profile"</code>. If <code>NULL</code>, the organisation recorded by the last
+<code><a href="inventory_run.html">inventory_run()</a></code> into this store is used, if any.</p></dd>
+
+
 <dt id="arg-title">title<a class="anchor" aria-label="anchor" href="#arg-title"></a></dt>
-<dd><p>Report title.</p></dd>
+<dd><p>Report title, after the organisation prefix.</p></dd>
 
 
 <dt id="arg-quiet">quiet<a class="anchor" aria-label="anchor" href="#arg-quiet"></a></dt>
@@ -101,8 +108,8 @@ package; plain tables are used without it.</p>
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
-<span class="r-in"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="inventory_run.html">inventory_run</a></span><span class="op">(</span><span class="fu"><a href="fakehosp_path.html">fakehosp_path</a></span><span class="op">(</span><span class="op">)</span>, store <span class="op">=</span> <span class="st">"fakehosp_inventory.sqlite"</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="fu">render_report</span><span class="op">(</span><span class="st">"fakehosp_inventory.sqlite"</span>, <span class="st">"fakehosp_inventory.html"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="inventory_run.html">inventory_run</a></span><span class="op">(</span><span class="fu"><a href="fakehosp_path.html">fakehosp_path</a></span><span class="op">(</span><span class="op">)</span>, store <span class="op">=</span> <span class="st">"fakehosp_inventory.sqlite"</span>, organisation <span class="op">=</span> <span class="st">"Fake NHS Trust"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">render_report</span><span class="op">(</span><span class="st">"fakehosp_inventory.sqlite"</span>, <span class="st">"fakehosp_inventory.html"</span><span class="op">)</span>   <span class="co"># titled "Fake NHS Trust: ..."</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

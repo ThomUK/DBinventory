@@ -62,6 +62,7 @@ over.</p>
 <span>  export_dir <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  export_format <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"csv"</span>, <span class="st">"parquet"</span><span class="op">)</span>,</span>
 <span>  report <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  organisation <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  schema <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  include <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  exclude <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -105,6 +106,12 @@ directory.</p></dd>
 <dt id="arg-report">report<a class="anchor" aria-label="anchor" href="#arg-report"></a></dt>
 <dd><p>If given, the path of an HTML report to render, see
 <code><a href="render_report.html">render_report()</a></code>.</p></dd>
+
+
+<dt id="arg-organisation">organisation<a class="anchor" aria-label="anchor" href="#arg-organisation"></a></dt>
+<dd><p>Name of the trust or organisation the database belongs
+to. Recorded in the store's <code>run_meta</code> and used to prefix the report
+title.</p></dd>
 
 
 <dt id="arg-schema">schema<a class="anchor" aria-label="anchor" href="#arg-schema"></a></dt>
@@ -180,11 +187,11 @@ runs) and <code>store</code> (the store path).</p>
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu">inventory_run</span><span class="op">(</span><span class="fu"><a href="fakehosp_path.html">fakehosp_path</a></span><span class="op">(</span><span class="op">)</span>, store <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempfile</a></span><span class="op">(</span>fileext <span class="op">=</span> <span class="st">".sqlite"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>                     include <span class="op">=</span> <span class="st">"pas_patients"</span>, progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
+<span class="r-in"><span>                     include <span class="op">=</span> <span class="st">"pas_patients"</span>, organisation <span class="op">=</span> <span class="st">"Fake NHS Trust"</span>, progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> 1 table found (sqlite dialect)</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Inventory of 1 table and 10 columns in 0s</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> 0 foreign key candidates proposed</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Run complete in 0.1s: 10 column profiles in /tmp/RtmpDjk1SO/file1ac85ce3ab74.sqlite</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Run complete in 0.2s: 10 column profiles in /tmp/RtmptL9c8Q/file1b7951dd87fe.sqlite</span>
 <span class="r-in"><span><span class="va">out</span><span class="op">$</span><span class="va">profile</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"column_name"</span>, <span class="st">"semantic_type"</span>, <span class="st">"null_rate"</span><span class="op">)</span><span class="op">]</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 10 × 3</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    column_name         semantic_type null_rate</span>

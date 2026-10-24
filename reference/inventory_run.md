@@ -15,6 +15,7 @@ inventory_run(
   export_dir = NULL,
   export_format = c("csv", "parquet"),
   report = NULL,
+  organisation = NULL,
   schema = NULL,
   include = NULL,
   exclude = NULL,
@@ -58,6 +59,11 @@ inventory_run(
 
   If given, the path of an HTML report to render, see
   [`render_report()`](https://thomuk.github.io/DBinventory/reference/render_report.md).
+
+- organisation:
+
+  Name of the trust or organisation the database belongs to. Recorded in
+  the store's `run_meta` and used to prefix the report title.
 
 - schema:
 
@@ -132,11 +138,11 @@ and `store` (the store path).
 
 ``` r
 out <- inventory_run(fakehosp_path(), store = tempfile(fileext = ".sqlite"),
-                     include = "pas_patients", progress = FALSE)
+                     include = "pas_patients", organisation = "Fake NHS Trust", progress = FALSE)
 #> ℹ 1 table found (sqlite dialect)
 #> ✔ Inventory of 1 table and 10 columns in 0s
 #> ℹ 0 foreign key candidates proposed
-#> ✔ Run complete in 0.1s: 10 column profiles in /tmp/RtmpDjk1SO/file1ac85ce3ab74.sqlite
+#> ✔ Run complete in 0.2s: 10 column profiles in /tmp/RtmptL9c8Q/file1b7951dd87fe.sqlite
 out$profile[, c("column_name", "semantic_type", "null_rate")]
 #> # A tibble: 10 × 3
 #>    column_name         semantic_type null_rate

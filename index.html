@@ -85,6 +85,7 @@
 <span></span>
 <span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/inventory_run.html">inventory_run</a></span><span class="op">(</span></span>
 <span>  <span class="st">"Driver={ODBC Driver 18 for SQL Server};Server=warehouse;Database=DW;Trusted_Connection=yes;TrustServerCertificate=yes;"</span>,</span>
+<span>  organisation <span class="op">=</span> <span class="st">"Example NHS Trust"</span>,   <span class="co"># prefixes the report title</span></span>
 <span>  store      <span class="op">=</span> <span class="st">"dw_inventory.sqlite"</span>,   <span class="co"># results and checkpoints</span></span>
 <span>  export_dir <span class="op">=</span> <span class="st">"dw_inventory_csv"</span>,      <span class="co"># one CSV per store table</span></span>
 <span>  report     <span class="op">=</span> <span class="st">"dw_inventory.html"</span>      <span class="co"># the rendered report</span></span>

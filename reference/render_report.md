@@ -12,6 +12,7 @@ render_report(
   store,
   output_file = "db_inventory_report.html",
   engine = c("auto", "quarto", "rmarkdown"),
+  organisation = NULL,
   title = "Database inventory and column profile",
   quiet = TRUE
 )
@@ -34,9 +35,18 @@ render_report(
 
   `"auto"`, `"quarto"` or `"rmarkdown"`.
 
+- organisation:
+
+  Name of the trust or organisation the database belongs to, used as a
+  prefix to the title:
+  `"Fake NHS Trust: Database inventory and column profile"`. If `NULL`,
+  the organisation recorded by the last
+  [`inventory_run()`](https://thomuk.github.io/DBinventory/reference/inventory_run.md)
+  into this store is used, if any.
+
 - title:
 
-  Report title.
+  Report title, after the organisation prefix.
 
 - quiet:
 
@@ -59,7 +69,7 @@ tables need the `DT` package; plain tables are used without it.
 
 ``` r
 if (FALSE) { # \dontrun{
-out <- inventory_run(fakehosp_path(), store = "fakehosp_inventory.sqlite")
-render_report("fakehosp_inventory.sqlite", "fakehosp_inventory.html")
+out <- inventory_run(fakehosp_path(), store = "fakehosp_inventory.sqlite", organisation = "Fake NHS Trust")
+render_report("fakehosp_inventory.sqlite", "fakehosp_inventory.html")   # titled "Fake NHS Trust: ..."
 } # }
 ```
