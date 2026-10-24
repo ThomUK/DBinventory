@@ -173,7 +173,7 @@ if (nrow(profile) > 0) {
 
 ## Candidate duplicate columns
 
-Columns in different tables with the same value fingerprint (type, distinct-count magnitude, min, max and top values). A starting point for the duplicate map, not a verdict: value-overlap tests come next.
+Groups of columns in different tables whose contents look the same: same type class, same order of magnitude of distinct values, same minimum and maximum and the same most frequent values, hashed together as a fingerprint. Each row is one group, listing every column in it; a group spanning a source table and a derived table is probably a copy, and columns matching under different names are the ones worth checking first. It is a starting point for the duplicate map, not a verdict: value-overlap tests confirm or reject it in the next stage.
 
 ```{r dupes}
 if (nrow(profile) > 0) {
