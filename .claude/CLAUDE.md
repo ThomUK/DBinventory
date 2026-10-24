@@ -8,6 +8,8 @@
   No sample data ships in this package: the tests run offline on
   `tests/testthat/fixtures/fakehosp_tiny.sqlite` (built by the script beside
   it); examples are `\dontrun`; the articles use the real sample.
+- Every commit to `main` increments the patch version in `DESCRIPTION`
+  (`Version: 0.1.1` becomes `0.1.2`), in the same commit as the change.
 - Run `Rscript -e 'devtools::test()'` and `rcmdcheck::rcmdcheck()` before
   pushing. CRAN is unreachable from the default cloud environment; R and most
   dependencies install from the Ubuntu archive (`apt-get install r-base r-cran-*`).
