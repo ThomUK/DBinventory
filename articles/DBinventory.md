@@ -29,7 +29,7 @@ passes through.
 
 con <- db_connect(fakehospdata::fh_connect("sample", quiet = TRUE))
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpLCE5TF/duckdb
+#> ℹ /tmp/RtmpSIRZ0j/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
