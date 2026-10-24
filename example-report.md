@@ -9,7 +9,7 @@ October 24, 2026
 **46** tables and views, **523** columns, **30,233** rows in total.
 Profiled 523 columns in 46 tables.
 
-Last run started 2026-10-24 18:52:37 UTC against
+Last run started 2026-10-24 19:01:09 UTC against
 `/home/runner/work/_temp/Library/DBinventory/extdata/fakehosp.sqlite`
 (sqlite dialect), sampling tables above 1,000,000 rows, top 10 values
 per column, literal values suppressed for identifiers, free text and
@@ -88,3 +88,9 @@ where values are suppressed or the column has too many distinct values
 for a frequency table to be useful.
 
 ## Run log
+
+One row per table per profiling attempt, with its outcome, how long it
+took and any error message. It is the checkpoint: a rerun against the
+same store skips tables whose latest entry is `ok` and retries the rest.
+Errors here usually mean a broken view or an object the login cannot
+read.
