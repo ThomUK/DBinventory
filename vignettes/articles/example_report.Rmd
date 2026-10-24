@@ -1,0 +1,32 @@
+---
+title: "Example report"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+This is the report `render_report()` produces, run against the synthetic
+hospital database bundled with the package: 46 tables and 523 columns from a
+fictional NHS trust, capped at 1,000 rows per table. It is regenerated every
+time the site is built, so it always reflects the current package.
+
+The report shows headline counts, the table inventory ranked by size and
+freshness, the type and semantic-type mix, null and uniqueness distributions,
+candidate duplicate columns, the full searchable column profile and the run
+log. Identifier, free-text and personal-data columns have their literal values
+suppressed, which is the default.
+
+<p><a href="../example-report.html" target="_blank" rel="noopener">Open the report in its own window</a></p>
+
+<iframe src="../example-report.html" title="Example DBinventory report"
+        style="width: 100%; height: 85vh; border: 1px solid #dee2e6; border-radius: 4px;"
+        loading="lazy"></iframe>
+
+To make one for your own database:
+
+```r
+library(DBinventory)
+inventory_run("Driver={ODBC Driver 18 for SQL Server};Server=...;Database=...;Trusted_Connection=yes;",
+              store = "dw_inventory.sqlite", report = "dw_inventory.html")
+```
