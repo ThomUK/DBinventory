@@ -41,6 +41,8 @@ Artefact 2. Per-column statistics, semantic types and fingerprints.
   : Read the top values of a profile row back into a data frame
 - [`infer_semantic_type()`](https://thomuk.github.io/DBinventory/reference/infer_semantic_type.md)
   : Infer a semantic type for each profiled column
+- [`infer_foreign_keys()`](https://thomuk.github.io/DBinventory/reference/infer_foreign_keys.md)
+  : Propose foreign key relationships from the column profile
 - [`fingerprints()`](https://thomuk.github.io/DBinventory/reference/fingerprints.md)
   : Fingerprint profiled columns
 - [`duplicate_candidates()`](https://thomuk.github.io/DBinventory/reference/duplicate_candidates.md)

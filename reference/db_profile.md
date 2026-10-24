@@ -93,11 +93,17 @@ db_profile(
 A tibble of class `column_profile`, one row per column. Columns include
 `null_rate`, `distinct_count`, `distinct_rate`, `is_unique`,
 `pk_candidate` (unique, never null and a string, integer or uuid type;
-on a sampled table this is evidence from the sample only), `min_value`,
-`max_value`, `mean_value`, `min_length`, `max_length`, `mean_length`,
-`true_count`, `top_values` (JSON), `top_values_hash`, `semantic_type`,
-`values_suppressed`, `value_fingerprint`, `column_fingerprint`,
-`rows_profiled`, `sampled`, `sample_method`, `profiled_at`.
+on a sampled table this is evidence from the sample only),
+`fk_candidate`, `fk_target`, `fk_confidence` and `fk_evidence` (see
+[`infer_foreign_keys()`](https://thomuk.github.io/DBinventory/reference/infer_foreign_keys.md);
+inferred across the tables profiled in this call, or across the whole
+store by
+[`inventory_run()`](https://thomuk.github.io/DBinventory/reference/inventory_run.md)),
+`min_value`, `max_value`, `mean_value`, `min_length`, `max_length`,
+`mean_length`, `true_count`, `top_values` (JSON), `top_values_hash`,
+`semantic_type`, `values_suppressed`, `value_fingerprint`,
+`column_fingerprint`, `rows_profiled`, `sampled`, `sample_method`,
+`profiled_at`.
 
 ## Examples
 

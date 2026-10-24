@@ -152,6 +152,12 @@
 </tr>
 <tr>
 <td>
+<code>fk_candidate</code>, <code>fk_target</code>, <code>fk_confidence</code>, <code>fk_evidence</code>, <code>fk_n_targets</code>
+</td>
+<td>Best-scoring key column this column appears to reference, from name, range and cardinality evidence (see <code><a href="reference/infer_foreign_keys.html">infer_foreign_keys()</a></code>); a shortlist for the key register’s match-rate tests, not a confirmed relationship</td>
+</tr>
+<tr>
+<td>
 <code>min_value</code>, <code>max_value</code>, <code>mean_value</code>, <code>true_count</code>
 </td>
 <td>Range as text (ISO 8601 for dates), mean for numerics, count of <code>TRUE</code> for booleans</td>
@@ -192,7 +198,7 @@
 <h2 id="design-decisions">Design decisions<a class="anchor" aria-label="anchor" href="#design-decisions"></a>
 </h2>
 <p>These are the choices made where the brief left room; all are easy to change.</p>
-<p><strong>Values are suppressed by default.</strong> The profile of a hospital warehouse will be committed to a repository, so <code>min_value</code>, <code>max_value</code> and <code>top_values</code> are withheld for columns inferred as identifiers or free text and for columns whose names suggest personal data (<code>nhs</code>, <code>mrn</code>, <code>postcode</code>, <code>dob</code>, <code>name</code>, <code>address</code>, …). Hashes and fingerprints are computed before suppression, so copies still match. Pass <code>keep_values = TRUE</code> where the output itself is held securely.</p>
+<p><strong>Values are suppressed by default.</strong> The profile of a hospital warehouse will be committed to a repository, so <code>min_value</code>, <code>max_value</code> and <code>top_values</code> are withheld for columns inferred as free text or as identifiers with more than 200 distinct values, and for columns whose names suggest personal data (<code>nhs</code>, <code>mrn</code>, <code>postcode</code>, <code>dob</code>, <code>name</code>, <code>address</code>, …). Hashes and fingerprints are computed before suppression, so copies still match. Pass <code>keep_values = TRUE</code> where the output itself is held securely.</p>
 <p><strong>Large tables are sampled.</strong> Exact <code>COUNT(*)</code> and <code>MAX(datetime)</code> always run on the full table; value statistics for tables above <code>sample_rows</code> (default a million) are computed on a sample materialised in a session temporary table (<code>TABLESAMPLE SYSTEM</code> on SQL Server, <code>USING SAMPLE reservoir</code> on DuckDB, <code>ORDER BY random()</code> on SQLite, <code>TABLESAMPLE SYSTEM (pct)</code> on PostgreSQL; views on SQL Server fall back to the first rows). <code>sampled</code> and <code>sample_method</code> record what happened. <code>sample_rows = Inf</code> disables it.</p>
 <p><strong>One query per table for the aggregates, one per eligible column for top values.</strong> Aggregates are batched <code>column_batch</code> columns at a time. Top values are skipped for columns with more than <code>top_values_max_distinct</code> distinct values, where a frequency table says little.</p>
 <p><strong>Only <code>SELECT</code> is needed.</strong> Metadata comes from <code>INFORMATION_SCHEMA</code> (<code>sqlite_master</code> on SQLite). Table sizes come from <code>sys.dm_db_partition_stats</code> on SQL Server and <code>pg_total_relation_size</code> on PostgreSQL when the login can see them, and are <code>NA</code> otherwise. Temporary tables need no extra rights.</p>

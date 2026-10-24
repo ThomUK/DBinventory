@@ -138,7 +138,10 @@ the engine rejects very wide statements.</p></dd>
     <p>A tibble of class <code>column_profile</code>, one row per column. Columns
 include <code>null_rate</code>, <code>distinct_count</code>, <code>distinct_rate</code>, <code>is_unique</code>,
 <code>pk_candidate</code> (unique, never null and a string, integer or uuid type;
-on a sampled table this is evidence from the sample only),
+on a sampled table this is evidence from the sample only), <code>fk_candidate</code>,
+<code>fk_target</code>, <code>fk_confidence</code> and <code>fk_evidence</code> (see <code><a href="infer_foreign_keys.html">infer_foreign_keys()</a></code>;
+inferred across the tables profiled in this call, or across the whole
+store by <code><a href="inventory_run.html">inventory_run()</a></code>),
 <code>min_value</code>, <code>max_value</code>, <code>mean_value</code>, <code>min_length</code>, <code>max_length</code>,
 <code>mean_length</code>, <code>true_count</code>, <code>top_values</code> (JSON), <code>top_values_hash</code>,
 <code>semantic_type</code>, <code>values_suppressed</code>, <code>value_fingerprint</code>,

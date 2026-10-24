@@ -44,7 +44,7 @@ expressions on `schema.table` narrow the scope.
 
 inv <- db_inventory(con, include = c("pas_", "v_emergency"), progress = FALSE)
 #> ℹ 6 tables found (sqlite dialect)
-#> ✔ Inventory of 6 tables and 70 columns in 0.1s
+#> ✔ Inventory of 6 tables and 70 columns in 0.2s
 inv$tables[, c("table_name", "table_type", "n_columns", "row_count", "newest_datetime", "newest_datetime_column")]
 #> # A tibble: 6 × 6
 #>   table_name                  table_type n_columns row_count newest_datetime    
@@ -156,6 +156,22 @@ duplicate_candidates(prof2)[, c("n_tables", "columns")]
 #> 7        2 main.derived_op_appointments.attendkey; main.pas_outpatient_appointm…
 #> 8        2 main.derived_op_appointments.cancelled_datetime; main.pas_outpatient…
 #> 9        2 main.derived_op_appointments.booked_datetime; main.pas_outpatient_ap…
+```
+
+## Foreign key candidates
+
+Every string, integer or uuid column is scored against the
+`pk_candidate` columns of the other tables on name, value range and
+cardinality. The best target above a confidence threshold becomes
+`fk_target`. It is a shortlist for the key register’s match-rate tests,
+not a confirmed relationship.
+
+``` r
+
+prof2[prof2$fk_candidate, c("table_name", "column_name", "fk_target", "fk_confidence", "fk_evidence")]
+#> # A tibble: 0 × 5
+#> # ℹ 5 variables: table_name <chr>, column_name <chr>, fk_target <chr>,
+#> #   fk_confidence <dbl>, fk_evidence <chr>
 ```
 
 ## Store, resume and report

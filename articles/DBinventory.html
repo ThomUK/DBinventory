@@ -99,7 +99,7 @@ narrow the scope.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">inv</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/db_inventory.html">db_inventory</a></span><span class="op">(</span><span class="va">con</span>, include <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pas_"</span>, <span class="st">"v_emergency"</span><span class="op">)</span>, progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> 6 tables found (sqlite dialect)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Inventory of 6 tables and 70 columns in 0.1s</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Inventory of 6 tables and 70 columns in 0.2s</span></span>
 <span><span class="va">inv</span><span class="op">$</span><span class="va">tables</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"table_name"</span>, <span class="st">"table_type"</span>, <span class="st">"n_columns"</span>, <span class="st">"row_count"</span>, <span class="st">"newest_datetime"</span>, <span class="st">"newest_datetime_column"</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 6 × 6</span></span></span>
 <span><span class="co">#&gt;   table_name                  table_type n_columns row_count newest_datetime    </span></span>
@@ -200,6 +200,20 @@ column in other tables still match on fingerprint:</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">9</span>        2 main.derived_op_appointments.booked_datetime; main.pas_outpatient_ap…</span></span></code></pre></div>
 </div>
 <div class="section level2">
+<h2 id="foreign-key-candidates">Foreign key candidates<a class="anchor" aria-label="anchor" href="#foreign-key-candidates"></a>
+</h2>
+<p>Every string, integer or uuid column is scored against the
+<code>pk_candidate</code> columns of the other tables on name, value
+range and cardinality. The best target above a confidence threshold
+becomes <code>fk_target</code>. It is a shortlist for the key register’s
+match-rate tests, not a confirmed relationship.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">prof2</span><span class="op">[</span><span class="va">prof2</span><span class="op">$</span><span class="va">fk_candidate</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"table_name"</span>, <span class="st">"column_name"</span>, <span class="st">"fk_target"</span>, <span class="st">"fk_confidence"</span>, <span class="st">"fk_evidence"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 0 × 5</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 5 variables: table_name &lt;chr&gt;, column_name &lt;chr&gt;, fk_target &lt;chr&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   fk_confidence &lt;dbl&gt;, fk_evidence &lt;chr&gt;</span></span></span></code></pre></div>
+</div>
+<div class="section level2">
 <h2 id="store-resume-and-report">Store, resume and report<a class="anchor" aria-label="anchor" href="#store-resume-and-report"></a>
 </h2>
 <p>For a warehouse of hundreds of tables, use
@@ -207,14 +221,14 @@ column in other tables still match on fingerprint:</p>
 profile to a SQLite store as it goes, so an interrupted run resumes
 where it stopped, and it can export CSV or Parquet and render the HTML
 report at the end.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/inventory_run.html">inventory_run</a></span><span class="op">(</span></span>
 <span>  <span class="st">"Driver={ODBC Driver 18 for SQL Server};Server=warehouse;Database=DW;Trusted_Connection=yes;"</span>,</span>
 <span>  store <span class="op">=</span> <span class="st">"dw_inventory.sqlite"</span>,</span>
 <span>  export_dir <span class="op">=</span> <span class="st">"dw_inventory_csv"</span>,</span>
 <span>  report <span class="op">=</span> <span class="st">"dw_inventory.html"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">DBI</span><span class="fu">::</span><span class="fu"><a href="https://dbi.r-dbi.org/reference/dbDisconnect.html" class="external-link">dbDisconnect</a></span><span class="op">(</span><span class="va">con</span><span class="op">)</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
