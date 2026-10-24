@@ -66,7 +66,7 @@ a sample materialised in a temporary table.
 ```{r profile}
 prof <- db_profile(con, inv, progress = FALSE)
 prof[prof$table_name == "pas_patients",
-     c("column_name", "null_rate", "distinct_count", "is_unique", "semantic_type", "values_suppressed")]
+     c("column_name", "null_rate", "distinct_count", "is_unique", "pk_candidate", "semantic_type", "values_suppressed")]
 ```
 
 Literal values are suppressed by default for identifiers, free text and

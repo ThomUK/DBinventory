@@ -56,6 +56,10 @@ test_that("db_profile computes exact statistics on a toy table", {
   nhs <- row("nhs_number")
   expect_equal(nhs$distinct_count, 29)
   expect_true(nhs$is_unique)
+  expect_false(nhs$pk_candidate)        # unique but has a null
+  expect_true(id$pk_candidate)
+  expect_false(row("seen")$pk_candidate) # datetimes are not key material
+  expect_false(code$pk_candidate)
   expect_equal(nhs$semantic_type, "identifier")
   expect_equal(nhs$min_length, 10)
 

@@ -85,6 +85,7 @@ DBI::dbDisconnect(con)
 | `row_count`, `rows_profiled`, `sampled`, `sample_method` | Full row count from the inventory; how many rows the statistics were computed on and how they were drawn |
 | `null_count`, `null_rate`, `empty_count` | Nulls, and empty strings for text columns |
 | `distinct_count`, `distinct_rate`, `is_unique` | Distinct values, distinct / non-null, and whether every non-null value is distinct |
+| `pk_candidate` | Unique, never null and a string, integer or uuid type: worth testing as a primary key. On a sampled table this is evidence from the sample only |
 | `min_value`, `max_value`, `mean_value`, `true_count` | Range as text (ISO 8601 for dates), mean for numerics, count of `TRUE` for booleans |
 | `min_length`, `max_length`, `mean_length` | String lengths |
 | `top_values`, `top_values_hash` | The `top_n` most frequent values as JSON (read with `top_values_of()`), and a hash of them |

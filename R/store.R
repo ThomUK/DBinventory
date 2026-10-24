@@ -78,7 +78,7 @@ store_write <- function(store, name, x, append = FALSE) {
 store_read <- function(store, name) {
   if (!DBI::dbExistsTable(store$con, name)) return(NULL)
   x <- DBI::dbReadTable(store$con, name)
-  for (nm in intersect(names(x), c("sampled", "is_unique", "values_suppressed", "is_nullable"))) x[[nm]] <- as.logical(x[[nm]])
+  for (nm in intersect(names(x), c("sampled", "is_unique", "pk_candidate", "values_suppressed", "is_nullable"))) x[[nm]] <- as.logical(x[[nm]])
   as_tbl(x)
 }
 

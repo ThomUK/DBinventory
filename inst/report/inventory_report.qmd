@@ -47,14 +47,25 @@ bytes <- function(b) ifelse(is.na(b), "", ifelse(b >= 1e9, paste0(round(b / 1e9,
 ```
 
 ```{r headline, results="asis"}
-n_err <- sum(log$status == "error")
+# latest attempt per table decides whether it failed
+latest <- if (nrow(log) > 0) log[order(log$logged_at, decreasing = TRUE), ] else log
+latest <- latest[!duplicated(paste(latest$table_schema, latest$table_name)), ]
+failed <- latest[latest$status == "error", ]
+secs <- sum(log$seconds, na.rm = TRUE)
+took <- if (secs >= 3600) sprintf("%.1f hours", secs / 3600) else if (secs >= 60) sprintf("%.0f minutes", secs / 60) else sprintf("%.0f seconds", secs)
 cat(sprintf(
-  "**%s** tables and views, **%s** columns, **%s** rows in total%s. Profiled %s columns in %s tables%s.\n\n",
+  "**%s** tables and views, **%s** columns, **%s** rows in total%s. Profiled %s columns in %s tables in %s.\n\n",
   fmt(nrow(tables)), fmt(nrow(columns)), fmt(sum(tables$row_count, na.rm = TRUE)),
   if (any(!is.na(tables$size_bytes))) sprintf(", %s on disk", bytes(sum(tables$size_bytes, na.rm = TRUE))) else "",
-  fmt(nrow(profile)), fmt(length(unique(paste(profile$table_schema, profile$table_name)))),
-  if (n_err > 0) sprintf("; **%d tables failed** (see the run log)", n_err) else ""
+  fmt(nrow(profile)), fmt(length(unique(paste(profile$table_schema, profile$table_name)))), took
 ))
+if (nrow(failed) > 0) {
+  cat(sprintf("<div class=\"alert alert-warning\"><strong>%d table%s could not be profiled</strong> and %s missing from the column profile below. Usually a broken view or an object the login cannot read; the full log is in the store's <code>profile_log</code> table.\n\n",
+      nrow(failed), if (nrow(failed) == 1) "" else "s", if (nrow(failed) == 1) "is" else "are"))
+  cat("| Table | Error |\n| --- | --- |\n")
+  cat(sprintf("| %s.%s | %s |\n", failed$table_schema, failed$table_name, gsub("|", "\\|", gsub("\n", " ", failed$message), fixed = TRUE)), sep = "")
+  cat("\n</div>\n\n")
+}
 if (!is.null(meta) && nrow(meta) > 0) {
   m <- meta[nrow(meta), ]
   cat(sprintf("Last run started %s UTC against `%s` (%s dialect), sampling tables above %s rows, top %d values per column, literal values %s.\n\n",
@@ -189,7 +200,7 @@ if (nrow(profile) > 0) {
 
 ## Column profile
 
-`top_values` lists the most frequent values with their counts; blank where values are suppressed or the column has too many distinct values for a frequency table to be useful.
+`pk_candidate` marks columns that are unique, never null and of a type keys are made of; where `sampled` is true that is evidence from the sample only. `top_values` lists the most frequent values with their counts; blank where values are suppressed or the column has too many distinct values for a frequency table to be useful.
 
 ```{r profile}
 if (nrow(profile) > 0) {
@@ -205,21 +216,9 @@ if (nrow(profile) > 0) {
     paste(items, collapse = if (has_dt) ";<br>" else "; ")
   }, character(1), USE.NAMES = FALSE)
   cols <- c("table_schema", "table_name", "column_name", "data_type", "semantic_type", "row_count", "null_rate",
-            "distinct_count", "distinct_rate", "is_unique", "min_value", "max_value", "mean_value", "top_values", "sampled")
+            "distinct_count", "distinct_rate", "is_unique", "pk_candidate", "min_value", "max_value", "mean_value", "top_values", "sampled")
   p <- as.data.frame(p[, intersect(cols, names(p))])
   # every column is HTML-escaped except top_values, whose values were escaped above
   show(p, escape = setdiff(seq_along(p), which(names(p) == "top_values")))
-}
-```
-
-## Run log
-
-One row per table per profiling attempt, with its outcome, how long it took and any error message. It is the checkpoint: a rerun against the same store skips tables whose latest entry is `ok` and retries the rest. Errors here usually mean a broken view or an object the login cannot read.
-
-```{r log}
-if (nrow(log) > 0) {
-  l <- log[order(log$logged_at, decreasing = TRUE), ]
-  l$seconds <- round(l$seconds, 1)
-  show(as.data.frame(l))
 }
 ```

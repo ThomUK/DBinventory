@@ -29,6 +29,8 @@
 #' @param progress Show a progress bar? Default `TRUE` in interactive use.
 #' @return A tibble of class `column_profile`, one row per column. Columns
 #'   include `null_rate`, `distinct_count`, `distinct_rate`, `is_unique`,
+#'   `pk_candidate` (unique, never null and a string, integer or uuid type;
+#'   on a sampled table this is evidence from the sample only),
 #'   `min_value`, `max_value`, `mean_value`, `min_length`, `max_length`,
 #'   `mean_length`, `true_count`, `top_values` (JSON), `top_values_hash`,
 #'   `semantic_type`, `values_suppressed`, `value_fingerprint`,
@@ -143,6 +145,9 @@ profile_table <- function(con, d, tab, cols, sample_rows, top_n, top_values_max_
   out$distinct_count <- stats$distinct
   out$distinct_rate <- ifelse(stats$nonnull > 0, stats$distinct / stats$nonnull, NA_real_)
   out$is_unique <- !is.na(stats$distinct) & stats$nonnull > 0 & stats$distinct == stats$nonnull
+  # a primary key candidate: unique, never null, and of a type keys are made of.
+  # On a sampled table this is evidence from the sample only (see `sampled`).
+  out$pk_candidate <- out$is_unique & out$null_count == 0 & cols$type_class %in% c("string", "integer", "uuid")
   out$min_value <- stats$min
   out$max_value <- stats$max
   out$mean_value <- stats$mean
@@ -231,7 +236,7 @@ empty_profile <- function() {
     ordinal_position = integer(), data_type = character(), type_class = character(),
     row_count = numeric(), rows_profiled = numeric(), sampled = logical(), sample_method = character(),
     null_count = numeric(), null_rate = numeric(), empty_count = numeric(),
-    distinct_count = numeric(), distinct_rate = numeric(), is_unique = logical(),
+    distinct_count = numeric(), distinct_rate = numeric(), is_unique = logical(), pk_candidate = logical(),
     min_value = character(), max_value = character(), mean_value = numeric(), true_count = numeric(),
     min_length = numeric(), max_length = numeric(), mean_length = numeric(),
     top_values = character(), top_values_hash = character(), semantic_type = character(),
