@@ -99,7 +99,7 @@ if (length(d) > 0) {
 
 ### Row counts
 
-Bins are log-spaced so that reference tables and multi-million-row logs both show; the axis is labelled with row counts.
+Bins are log-spaced so that reference tables and multi-million-row logs both show; each bar covers the row counts between the two boundaries it sits on.
 
 ```{r rows, fig.height=4}
 rc <- tables$row_count[!is.na(tables$row_count) & tables$row_count > 0]
@@ -107,11 +107,15 @@ if (length(rc) > 0) {
   lo <- floor(log10(min(rc)))
   hi <- ceiling(log10(max(rc)))
   if (hi == lo) hi <- lo + 1
-  ggplot(data.frame(rows = rc), aes(x = rows)) +
-    geom_histogram(breaks = 10^seq(lo, hi, by = 0.25), fill = fill_blue, colour = "white") +
-    scale_x_log10(breaks = 10^seq(lo, hi), labels = scales::label_comma()) +
-    scale_y_continuous(breaks = function(l) unique(floor(pretty(l)))) +
-    labs(x = "Rows in table", y = "Tables")
+  edges <- sort(unique(as.vector(outer(c(1, 2, 5), 10^seq(lo, hi)))))   # 1, 2, 5, 10, 20, 50, ...
+  edges <- edges[edges <= 10^hi]
+  bins <- cut(rc, breaks = edges, right = FALSE, include.lowest = TRUE)
+  counts <- data.frame(from = edges[-length(edges)], to = edges[-1], tables = as.integer(table(bins)))
+  ggplot(counts) +
+    geom_rect(aes(xmin = from, xmax = to, ymin = 0, ymax = tables), fill = fill_blue, colour = "white") +
+    scale_x_log10(breaks = edges, labels = scales::label_comma(), expand = expansion(0)) +
+    scale_y_continuous(breaks = function(l) unique(floor(pretty(l))), expand = expansion(mult = c(0, 0.05))) +
+    labs(x = "Rows in table (bars span the range between two boundaries)", y = "Tables")
 }
 ```
 
@@ -192,11 +196,14 @@ if (nrow(profile) > 0) {
   p$top_values <- vapply(p$top_values, function(j) {
     if (is.na(j)) return("")
     tv <- jsonlite::fromJSON(j)
-    paste0(tv$value, " (", format(tv$n, big.mark = ",", trim = TRUE), ")", collapse = "; ")
+    items <- paste0(if (has_dt) htmltools::htmlEscape(tv$value) else tv$value, " (", format(tv$n, big.mark = ",", trim = TRUE), ")")
+    paste(items, collapse = if (has_dt) ";<br>" else "; ")
   }, character(1), USE.NAMES = FALSE)
   cols <- c("table_schema", "table_name", "column_name", "data_type", "semantic_type", "row_count", "null_rate",
             "distinct_count", "distinct_rate", "is_unique", "min_value", "max_value", "mean_value", "top_values", "sampled")
-  show(as.data.frame(p[, intersect(cols, names(p))]))
+  p <- as.data.frame(p[, intersect(cols, names(p))])
+  # every column is HTML-escaped except top_values, whose values were escaped above
+  show(p, escape = setdiff(seq_along(p), which(names(p) == "top_values")))
 }
 ```
 
