@@ -1,0 +1,9 @@
+pandoc: 3.8.3
+pkgdown: 2.2.1
+pkgdown_sha: ~
+articles:
+  DBinventory: DBinventory.html
+last_built: 2026-10-24T16:50Z
+urls:
+  reference: https://thomuk.github.io/DBinventory/reference
+  article: https://thomuk.github.io/DBinventory/articles
