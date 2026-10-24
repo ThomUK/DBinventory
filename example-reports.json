@@ -14,8 +14,8 @@
     "size_mb": 2.3
   },
   {
-    "label": "unsampled",
-    "file": "example-report-unsampled.html",
+    "label": "full",
+    "file": "example-report-full.html",
     "scale": "full",
     "sample_rows": "Inf",
     "tables": 52,
