@@ -10,6 +10,7 @@ inventory_run(
   export_dir = NULL,
   export_format = c("csv", "parquet"),
   report = NULL,
+  organisation = NULL,
   schema = NULL,
   include = NULL,
   exclude = NULL,
@@ -40,6 +41,10 @@ directory.}
 
 \item{report}{If given, the path of an HTML report to render, see
 \code{\link[=render_report]{render_report()}}.}
+
+\item{organisation}{Name of the trust or organisation the database belongs
+to. Recorded in the store's \code{run_meta} and used to prefix the report
+title.}
 
 \item{schema}{Optional character vector of schema names to keep.}
 
@@ -92,6 +97,6 @@ over.
 }
 \examples{
 out <- inventory_run(fakehosp_path(), store = tempfile(fileext = ".sqlite"),
-                     include = "pas_patients", progress = FALSE)
+                     include = "pas_patients", organisation = "Fake NHS Trust", progress = FALSE)
 out$profile[, c("column_name", "semantic_type", "null_rate")]
 }

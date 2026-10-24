@@ -29,7 +29,7 @@ test_that("inventory_run does everything from a path and exports CSV", {
   skip_if_no_sqlite()
   store <- withr::local_tempfile(fileext = ".sqlite")
   export <- withr::local_tempdir()
-  out <- inventory_run(fakehosp_path(), store = store, export_dir = export,
+  out <- inventory_run(fakehosp_path(), store = store, export_dir = export, organisation = "Fake NHS Trust",
                        include = c("pas_patients$", "v_emergency"), progress = FALSE)
   expect_s3_class(out$inventory, "db_inventory")
   expect_s3_class(out$profile, "column_profile")
@@ -43,6 +43,8 @@ test_that("inventory_run does everything from a path and exports CSV", {
   store_close(st)
   expect_equal(meta$dialect, "sqlite")
   expect_equal(meta$n_tables, 2)
+  expect_equal(meta$organisation, "Fake NHS Trust")
+  expect_equal(DBinventory:::store_organisation(store), "Fake NHS Trust")
 
   # a second run resumes: nothing new is profiled, but the store is intact
   out2 <- inventory_run(fakehosp_path(), store = store, include = c("pas_patients$", "v_emergency"), progress = FALSE)
@@ -64,4 +66,18 @@ test_that("store_export to parquet needs arrow or duckdb", {
   store_write(st, "x", data.frame(a = 1))
   store_close(st)
   expect_error(store_export(store, withr::local_tempdir(), "parquet"), "arrow or duckdb")
+})
+
+test_that("the report title is prefixed with the organisation", {
+  skip_if_no_sqlite()
+  skip_if_not_installed("rmarkdown")
+  skip_if(!rmarkdown::pandoc_available())
+  store <- withr::local_tempfile(fileext = ".sqlite")
+  inventory_run(fakehosp_path(), store = store, include = "sites$", organisation = "Fake NHS Trust", progress = FALSE)
+  out <- withr::local_tempfile(fileext = ".html")
+  render_report(store, out, engine = "rmarkdown")
+  html <- paste(readLines(out, warn = FALSE), collapse = "\n")
+  expect_match(html, "Fake NHS Trust: Database inventory and column profile", fixed = TRUE)
+  render_report(store, out, engine = "rmarkdown", organisation = "Another Trust")
+  expect_match(paste(readLines(out, warn = FALSE), collapse = "\n"), "Another Trust: Database inventory", fixed = TRUE)
 })

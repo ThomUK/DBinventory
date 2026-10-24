@@ -39,6 +39,7 @@ library(DBinventory)
 
 out <- inventory_run(
   "Driver={ODBC Driver 18 for SQL Server};Server=warehouse;Database=DW;Trusted_Connection=yes;TrustServerCertificate=yes;",
+  organisation = "Example NHS Trust",   # prefixes the report title
   store      = "dw_inventory.sqlite",   # results and checkpoints
   export_dir = "dw_inventory_csv",      # one CSV per store table
   report     = "dw_inventory.html"      # the rendered report

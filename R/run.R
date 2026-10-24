@@ -15,6 +15,9 @@
 #' @param export_format `"csv"` (default) or `"parquet"`.
 #' @param report If given, the path of an HTML report to render, see
 #'   [render_report()].
+#' @param organisation Name of the trust or organisation the database belongs
+#'   to. Recorded in the store's `run_meta` and used to prefix the report
+#'   title.
 #' @param resume Skip tables already profiled in `store`? Default `TRUE`.
 #' @param sizes Read table sizes from system views? Default `TRUE`.
 #' @param disconnect Disconnect a connection this function opened? Default
@@ -26,11 +29,11 @@
 #'   runs) and `store` (the store path).
 #' @examples
 #' out <- inventory_run(fakehosp_path(), store = tempfile(fileext = ".sqlite"),
-#'                      include = "pas_patients", progress = FALSE)
+#'                      include = "pas_patients", organisation = "Fake NHS Trust", progress = FALSE)
 #' out$profile[, c("column_name", "semantic_type", "null_rate")]
 #' @export
 inventory_run <- function(source, store = "db_inventory.sqlite", export_dir = NULL,
-                          export_format = c("csv", "parquet"), report = NULL,
+                          export_format = c("csv", "parquet"), report = NULL, organisation = NULL,
                           schema = NULL, include = NULL, exclude = NULL, views = TRUE,
                           sample_rows = 1e6, top_n = 10, full_set_max = 50, top_values_max_distinct = 10000,
                           keep_values = FALSE, resume = TRUE, sizes = TRUE,
@@ -49,6 +52,7 @@ inventory_run <- function(source, store = "db_inventory.sqlite", export_dir = NU
   store_write(st, "run_meta", data.frame(
     started_at = format(started, "%Y-%m-%d %H:%M:%S", tz = "UTC"), dialect = d$name,
     source = if (is.character(source)) redact_source(source) else class(con)[1],
+    organisation = organisation %||% NA_character_,
     n_tables = nrow(inventory$tables), n_columns = nrow(inventory$columns),
     sample_rows = sample_rows, top_n = top_n, keep_values = keep_values,
     package_version = as.character(utils::packageVersion("DBinventory")), stringsAsFactors = FALSE
@@ -78,7 +82,7 @@ inventory_run <- function(source, store = "db_inventory.sqlite", export_dir = NU
   cli::cli_alert_success("Run complete in {round(elapsed_secs(started), 1)}s: {nrow(profile %||% data.frame())} column profiles in {store}{if (n_err > 0) paste0('; ', n_err, ' table(s) failed, see profile_log') else ''}")
 
   if (!is.null(export_dir)) store_export(store, export_dir, export_format)
-  if (!is.null(report)) render_report(store, report)
+  if (!is.null(report)) render_report(store, report, organisation = organisation)
   invisible(list(inventory = inventory, profile = profile, store = store))
 }
 

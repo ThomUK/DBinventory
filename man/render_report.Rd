@@ -8,6 +8,7 @@ render_report(
   store,
   output_file = "db_inventory_report.html",
   engine = c("auto", "quarto", "rmarkdown"),
+  organisation = NULL,
   title = "Database inventory and column profile",
   quiet = TRUE
 )
@@ -19,7 +20,11 @@ render_report(
 
 \item{engine}{\code{"auto"}, \code{"quarto"} or \code{"rmarkdown"}.}
 
-\item{title}{Report title.}
+\item{organisation}{Name of the trust or organisation the database belongs
+to, used as a prefix to the title: \code{"Fake NHS Trust: Database inventory and column profile"}. If \code{NULL}, the organisation recorded by the last
+\code{\link[=inventory_run]{inventory_run()}} into this store is used, if any.}
+
+\item{title}{Report title, after the organisation prefix.}
 
 \item{quiet}{Suppress rendering output?}
 }
@@ -40,7 +45,7 @@ package; plain tables are used without it.
 }
 \examples{
 \dontrun{
-out <- inventory_run(fakehosp_path(), store = "fakehosp_inventory.sqlite")
-render_report("fakehosp_inventory.sqlite", "fakehosp_inventory.html")
+out <- inventory_run(fakehosp_path(), store = "fakehosp_inventory.sqlite", organisation = "Fake NHS Trust")
+render_report("fakehosp_inventory.sqlite", "fakehosp_inventory.html")   # titled "Fake NHS Trust: ..."
 }
 }

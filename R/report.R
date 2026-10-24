@@ -13,19 +13,25 @@
 #' @param store Path to a store written by [inventory_run()] or [db_profile()].
 #' @param output_file Path of the HTML file to write.
 #' @param engine `"auto"`, `"quarto"` or `"rmarkdown"`.
-#' @param title Report title.
+#' @param organisation Name of the trust or organisation the database belongs
+#'   to, used as a prefix to the title: `"Fake NHS Trust: Database inventory
+#'   and column profile"`. If `NULL`, the organisation recorded by the last
+#'   [inventory_run()] into this store is used, if any.
+#' @param title Report title, after the organisation prefix.
 #' @param quiet Suppress rendering output?
 #' @return The path of the rendered file, invisibly.
 #' @examples
 #' \dontrun{
-#' out <- inventory_run(fakehosp_path(), store = "fakehosp_inventory.sqlite")
-#' render_report("fakehosp_inventory.sqlite", "fakehosp_inventory.html")
+#' out <- inventory_run(fakehosp_path(), store = "fakehosp_inventory.sqlite", organisation = "Fake NHS Trust")
+#' render_report("fakehosp_inventory.sqlite", "fakehosp_inventory.html")   # titled "Fake NHS Trust: ..."
 #' }
 #' @export
 render_report <- function(store, output_file = "db_inventory_report.html",
-                          engine = c("auto", "quarto", "rmarkdown"),
+                          engine = c("auto", "quarto", "rmarkdown"), organisation = NULL,
                           title = "Database inventory and column profile", quiet = TRUE) {
   engine <- match.arg(engine)
+  if (is.null(organisation)) organisation <- store_organisation(store)
+  if (!is.null(organisation) && nzchar(organisation)) title <- paste0(organisation, ": ", title)
   for (pkg in c("ggplot2", "scales")) {
     if (!has_pkg(pkg)) rlang::abort(paste0("render_report() needs the ", pkg, " package: install.packages('", pkg, "')"))
   }
@@ -67,4 +73,15 @@ render_report <- function(store, output_file = "db_inventory_report.html",
   file.copy(rendered, output_file, overwrite = TRUE)
   cli::cli_alert_success("Report written to {output_file}")
   invisible(output_file)
+}
+
+#' The organisation recorded by the most recent inventory_run() into a store
+#' @noRd
+store_organisation <- function(store) {
+  st <- store_open(store)
+  on.exit(store_close(st), add = TRUE)
+  meta <- store_read(st, "run_meta")
+  if (is.null(meta) || nrow(meta) == 0 || !"organisation" %in% names(meta)) return(NULL)
+  org <- meta$organisation[nrow(meta)]
+  if (is.na(org) || !nzchar(org)) NULL else org
 }
