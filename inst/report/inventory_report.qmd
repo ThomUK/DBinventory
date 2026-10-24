@@ -200,7 +200,7 @@ if (nrow(profile) > 0) {
 
 ## Column profile
 
-`pk_candidate` marks columns that are unique, never null and of a type keys are made of; where `sampled` is true that is evidence from the sample only. `top_values` lists the most frequent values with their counts; blank where values are suppressed or the column has too many distinct values for a frequency table to be useful.
+`pk_candidate` marks columns that are unique, never null and of a type keys are made of; where `sampled` is true that is evidence from the sample only. `fk_candidate` and `fk_target` give the key column this column most looks like a reference to, scored from name, value range and cardinality (`fk_confidence`, 0 to 1); it is a shortlist for match-rate tests, not a confirmed relationship. `top_values` lists the most frequent values with their counts; blank where values are suppressed or the column has too many distinct values for a frequency table to be useful.
 
 ```{r profile}
 if (nrow(profile) > 0) {
@@ -216,7 +216,7 @@ if (nrow(profile) > 0) {
     paste(items, collapse = if (has_dt) ";<br>" else "; ")
   }, character(1), USE.NAMES = FALSE)
   cols <- c("table_schema", "table_name", "column_name", "data_type", "semantic_type", "row_count", "null_rate",
-            "distinct_count", "distinct_rate", "is_unique", "pk_candidate", "min_value", "max_value", "mean_value", "top_values", "sampled")
+            "distinct_count", "distinct_rate", "is_unique", "pk_candidate", "fk_candidate", "fk_target", "fk_confidence", "min_value", "max_value", "mean_value", "top_values", "sampled")
   p <- as.data.frame(p[, intersect(cols, names(p))])
   # every column is HTML-escaped except top_values, whose values were escaped above
   show(p, escape = setdiff(seq_along(p), which(names(p) == "top_values")))

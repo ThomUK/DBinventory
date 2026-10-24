@@ -30,7 +30,10 @@
 #' @return A tibble of class `column_profile`, one row per column. Columns
 #'   include `null_rate`, `distinct_count`, `distinct_rate`, `is_unique`,
 #'   `pk_candidate` (unique, never null and a string, integer or uuid type;
-#'   on a sampled table this is evidence from the sample only),
+#'   on a sampled table this is evidence from the sample only), `fk_candidate`,
+#'   `fk_target`, `fk_confidence` and `fk_evidence` (see [infer_foreign_keys()];
+#'   inferred across the tables profiled in this call, or across the whole
+#'   store by [inventory_run()]),
 #'   `min_value`, `max_value`, `mean_value`, `min_length`, `max_length`,
 #'   `mean_length`, `true_count`, `top_values` (JSON), `top_values_hash`,
 #'   `semantic_type`, `values_suppressed`, `value_fingerprint`,
@@ -83,7 +86,7 @@ db_profile <- function(con, inventory = NULL, tables = NULL, sample_rows = 1e6, 
     } else {
       results[[i]] <- res
       if (!is.null(st)) {
-        store_write(st, "column_profile", res, append = TRUE)
+        store_write(st, "column_profile", with_fk_placeholders(res), append = TRUE)
         store_log(st, tab, "ok", elapsed_secs(started), NA_character_)
       }
     }
@@ -92,7 +95,8 @@ db_profile <- function(con, inventory = NULL, tables = NULL, sample_rows = 1e6, 
   if (progress && n > 0) cli::cli_progress_done()
   out <- do.call(rbind, results)
   if (is.null(out)) out <- empty_profile()
-  structure(as_tbl(out), class = c("column_profile", class(as_tbl(out))))
+  out <- structure(as_tbl(out), class = c("column_profile", class(as_tbl(out))))
+  infer_foreign_keys(out)
 }
 
 #' Profile one table
@@ -237,6 +241,8 @@ empty_profile <- function() {
     row_count = numeric(), rows_profiled = numeric(), sampled = logical(), sample_method = character(),
     null_count = numeric(), null_rate = numeric(), empty_count = numeric(),
     distinct_count = numeric(), distinct_rate = numeric(), is_unique = logical(), pk_candidate = logical(),
+    fk_candidate = logical(), fk_target = character(), fk_confidence = numeric(), fk_evidence = character(),
+    fk_n_targets = integer(),
     min_value = character(), max_value = character(), mean_value = numeric(), true_count = numeric(),
     min_length = numeric(), max_length = numeric(), mean_length = numeric(),
     top_values = character(), top_values_hash = character(), semantic_type = character(),
@@ -260,4 +266,13 @@ top_values_of <- function(x, table = NULL, column = NULL) {
   }
   if (is.na(x)) return(NULL)
   jsonlite::fromJSON(x)
+}
+
+with_fk_placeholders <- function(x) {
+  x$fk_candidate <- rep(NA, nrow(x))
+  x$fk_target <- rep(NA_character_, nrow(x))
+  x$fk_confidence <- rep(NA_real_, nrow(x))
+  x$fk_evidence <- rep(NA_character_, nrow(x))
+  x$fk_n_targets <- rep(NA_integer_, nrow(x))
+  x
 }

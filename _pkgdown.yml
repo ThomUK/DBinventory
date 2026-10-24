@@ -47,6 +47,7 @@ reference:
   - db_profile
   - top_values_of
   - infer_semantic_type
+  - infer_foreign_keys
   - fingerprints
   - duplicate_candidates
 - title: Store, export and report

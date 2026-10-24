@@ -86,6 +86,7 @@ DBI::dbDisconnect(con)
 | `null_count`, `null_rate`, `empty_count` | Nulls, and empty strings for text columns |
 | `distinct_count`, `distinct_rate`, `is_unique` | Distinct values, distinct / non-null, and whether every non-null value is distinct |
 | `pk_candidate` | Unique, never null and a string, integer or uuid type: worth testing as a primary key. On a sampled table this is evidence from the sample only |
+| `fk_candidate`, `fk_target`, `fk_confidence`, `fk_evidence`, `fk_n_targets` | Best-scoring key column this column appears to reference, from name, range and cardinality evidence (see `infer_foreign_keys()`); a shortlist for the key register's match-rate tests, not a confirmed relationship |
 | `min_value`, `max_value`, `mean_value`, `true_count` | Range as text (ISO 8601 for dates), mean for numerics, count of `TRUE` for booleans |
 | `min_length`, `max_length`, `mean_length` | String lengths |
 | `top_values`, `top_values_hash` | The `top_n` most frequent values as JSON (read with `top_values_of()`), and a hash of them |
@@ -99,8 +100,8 @@ These are the choices made where the brief left room; all are easy to change.
 
 **Values are suppressed by default.** The profile of a hospital warehouse will
 be committed to a repository, so `min_value`, `max_value` and `top_values`
-are withheld for columns inferred as identifiers or free text and for columns
-whose names suggest personal data (`nhs`, `mrn`, `postcode`, `dob`, `name`,
+are withheld for columns inferred as free text or as identifiers with more
+than 200 distinct values, and for columns whose names suggest personal data (`nhs`, `mrn`, `postcode`, `dob`, `name`,
 `address`, ...). Hashes and fingerprints are computed before suppression, so
 copies still match. Pass `keep_values = TRUE` where the output itself is held
 securely.

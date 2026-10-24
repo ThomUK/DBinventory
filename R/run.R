@@ -66,8 +66,14 @@ inventory_run <- function(source, store = "db_inventory.sqlite", export_dir = NU
   st <- store_open(store)
   profile <- store_read(st, "column_profile")
   log <- store_read(st, "profile_log")
+  if (!is.null(profile) && nrow(profile) > 0) {
+    # foreign keys are inferred across every profiled table, including those
+    # from earlier resumed runs, then written back so the store carries them
+    profile <- infer_foreign_keys(structure(profile, class = c("column_profile", class(profile))))
+    store_write(st, "column_profile", profile)
+    cli::cli_alert_info("{sum(profile$fk_candidate)} foreign key candidate{?s} proposed")
+  }
   store_close(st)
-  if (!is.null(profile)) profile <- structure(profile, class = c("column_profile", class(profile)))
   n_err <- if (is.null(log)) 0L else sum(log$status == "error")
   cli::cli_alert_success("Run complete in {round(elapsed_secs(started), 1)}s: {nrow(profile %||% data.frame())} column profiles in {store}{if (n_err > 0) paste0('; ', n_err, ' table(s) failed, see profile_log') else ''}")
 

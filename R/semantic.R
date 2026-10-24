@@ -85,8 +85,10 @@ infer_semantic_type <- function(profile, top = NULL) {
 
 #' Which columns hold values that should not be copied into a profile?
 #'
-#' Identifiers and free text, plus anything whose name suggests personal data,
-#' whatever its inferred type. Dates are kept because freshness depends on them.
+#' Free text, identifiers with more than 200 distinct values, and anything
+#' whose name suggests personal data whatever its inferred type. Small
+#' identifier lists are code lists. Dates are kept because freshness depends
+#' on them.
 #' @noRd
 is_sensitive <- function(profile) {
   name <- tolower(profile$column_name)
@@ -94,6 +96,8 @@ is_sensitive <- function(profile) {
     name, perl = TRUE)
   # ...unless the name says it is a classifier of that thing (nhs_number_status, postcode_area_type)
   classifier <- grepl("(status|code|type|indicator|flag|group|desc|description|category|kind|area|district|sector|count|n)$|^(n|num|count|number_of|has|is)_", name, perl = TRUE)
-  type_sensitive <- profile$semantic_type %in% c("identifier", "free_text")
+  # an identifier drawn from a small set (a specialty or ward code list) is a code, not personal data
+  small_list <- !is.na(profile$distinct_count) & profile$distinct_count <= 200
+  type_sensitive <- profile$semantic_type == "free_text" | (profile$semantic_type == "identifier" & !small_list)
   (type_sensitive | (personal & !classifier)) & profile$type_class %in% c("string", "integer", "numeric", "uuid")
 }

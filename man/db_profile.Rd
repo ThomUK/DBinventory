@@ -57,7 +57,10 @@ the engine rejects very wide statements.}
 A tibble of class \code{column_profile}, one row per column. Columns
 include \code{null_rate}, \code{distinct_count}, \code{distinct_rate}, \code{is_unique},
 \code{pk_candidate} (unique, never null and a string, integer or uuid type;
-on a sampled table this is evidence from the sample only),
+on a sampled table this is evidence from the sample only), \code{fk_candidate},
+\code{fk_target}, \code{fk_confidence} and \code{fk_evidence} (see \code{\link[=infer_foreign_keys]{infer_foreign_keys()}};
+inferred across the tables profiled in this call, or across the whole
+store by \code{\link[=inventory_run]{inventory_run()}}),
 \code{min_value}, \code{max_value}, \code{mean_value}, \code{min_length}, \code{max_length},
 \code{mean_length}, \code{true_count}, \code{top_values} (JSON), \code{top_values_hash},
 \code{semantic_type}, \code{values_suppressed}, \code{value_fingerprint},

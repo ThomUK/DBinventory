@@ -87,6 +87,17 @@ prof2 <- db_profile(con, inv2, progress = FALSE)
 duplicate_candidates(prof2)[, c("n_tables", "columns")]
 ```
 
+## Foreign key candidates
+
+Every string, integer or uuid column is scored against the `pk_candidate`
+columns of the other tables on name, value range and cardinality. The best
+target above a confidence threshold becomes `fk_target`. It is a shortlist for
+the key register's match-rate tests, not a confirmed relationship.
+
+```{r fks}
+prof2[prof2$fk_candidate, c("table_name", "column_name", "fk_target", "fk_confidence", "fk_evidence")]
+```
+
 ## Store, resume and report
 
 For a warehouse of hundreds of tables, use `inventory_run()`. It writes the
