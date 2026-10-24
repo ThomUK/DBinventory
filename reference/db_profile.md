@@ -15,6 +15,7 @@ db_profile(
   tables = NULL,
   sample_rows = 1e+06,
   top_n = 10,
+  full_set_max = 50,
   top_values_max_distinct = 10000,
   keep_values = FALSE,
   store = NULL,
@@ -50,6 +51,12 @@ db_profile(
 - top_n:
 
   How many most-frequent values to record per column.
+
+- full_set_max:
+
+  Columns with at most this many distinct values have every value
+  recorded, not just the top `top_n`, so that a code list's frequency
+  table is complete and foreign key membership can be tested against it.
 
 - top_values_max_distinct:
 

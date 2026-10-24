@@ -3,14 +3,15 @@
 Tier-one inference, from profile statistics alone and without extra
 queries. Every column of a string, integer or uuid type is scored
 against every `pk_candidate` column in another table (or another column
-of the same table), and the best-scoring target above `min_confidence`
-is recorded. Confirming a candidate with a value match-rate query is the
-key register's job, later; this is the shortlist for it.
+of the same table), and the best-scoring target at or above
+`min_confidence` is recorded. These are candidates only: a shortlist for
+the key register's match-rate tests, which are the only thing that can
+confirm a relationship.
 
 ## Usage
 
 ``` r
-infer_foreign_keys(profile, min_confidence = 0.5)
+infer_foreign_keys(profile, min_confidence = 0.6)
 ```
 
 ## Arguments
@@ -30,31 +31,67 @@ infer_foreign_keys(profile, min_confidence = 0.5)
 
 `profile` with `fk_candidate` (logical), `fk_target`
 (`schema.table.column` of the best key, or `NA`), `fk_confidence`,
-`fk_evidence` (the scoring components as text) and `fk_n_targets` (how
-many keys scored at or above `min_confidence`; a conformed code such as
-a site code legitimately matches several) added or replaced.
+`fk_evidence` (the scoring components as text) and `fk_n_targets` added
+or replaced.
 
-## Details
+## Exclusions
 
-A pair is ruled out when the types differ, the child's string lengths
-fall outside the key's, or the two columns share a `value_fingerprint`
-(a copy, not a reference). Surviving pairs score:
+A pair is ruled out, whatever else it scores, when:
 
-- name evidence: 0.5 for the same normalised name, 0.35 when the child
+- the type classes differ, or the child's string lengths fall outside
+  the key's;
+
+- the child is itself unique and shares the key's `value_fingerprint`:
+  that is a copy of the key, which belongs in the duplicate map;
+
+- the key's complete value set is known (its distinct count is within
+  the values recorded for it) and a top value of the child is not in it;
+
+- the key's table was profiled in full and the child has more distinct
+  values than the key;
+
+- the shapes of the two columns' top values (runs of digits, letters and
+  other characters) do not overlap, so `100` cannot reference `Ward 3`;
+
+- the child is a flag, or is empty;
+
+- the key is in the child's own table and the names do not say it is a
+  self-reference (exact or suffix match);
+
+- the child is itself a `pk_candidate` and there is no name evidence: a
+  key that merely resembles another key is a coincidence or a copy.
+
+## Scoring
+
+Surviving pairs start at 0.1 and add:
+
+- name evidence: 0.45 for the same normalised name, 0.3 when the child
   name ends with the key name (`prior_mrn` to `mrn`), 0.2 when it
-  contains the key's table stem (`ward_name` to `wards.ward_id`);
+  contains the key's table stem (`main_site` to `sites.site_code`).
+  Generic column names such as `id`, `code`, `name` or `description`
+  earn nothing on their own; their keys are reached through the table
+  stem;
 
-- range: 0.25 when both ranges are known and the child's min and max lie
-  inside the key's, -0.25 when they do not; nothing when either side's
-  values are suppressed or the key table was sampled;
+- values: when the key's complete value set is known and every top value
+  of the child is in it, 0.4 times the share of the key's values the
+  child uses, so a child that uses all of a code list scores more than
+  one that uses two of its seven codes;
 
-- cardinality: 0.15 for a many-to-one shape (the child has no more
-  distinct values than the key and is not itself unique), 0.05 for
-  one-to-one; skipped when either table was sampled;
+- range: when the value set is not known but both ranges are, 0.25 if
+  the child's min and max lie inside the key's and -0.25 if they do not;
 
-- 0.1 for passing the type and length checks at all.
+- cardinality, when the key's table was profiled in full: 0.15 for a
+  many-to-one shape, 0.05 for one-to-one unless the child is itself a
+  `pk_candidate`;
 
-Scores are capped at 1. Ties go to the key with more distinct values.
+- 0.1 when both columns have the same minimum and maximum string length,
+  unless the child is itself a `pk_candidate`.
+
+Scores are capped at 1. Ties go to the key with the fewest distinct
+values when membership is known (the tightest fit) and the most when it
+is not (a table rather than a view of it), then by name. `fk_n_targets`
+counts how many keys reached the threshold, since a conformed code such
+as a site code legitimately matches several.
 
 ## Examples
 
@@ -68,6 +105,6 @@ prof[prof$fk_candidate, c("table_name", "column_name", "fk_target", "fk_confiden
 #> # A tibble: 1 × 4
 #>   table_name     column_name fk_target             fk_confidence
 #>   <chr>          <chr>       <chr>                         <dbl>
-#> 1 pas_adt_events mrn         main.pas_patients.mrn          0.75
+#> 1 pas_adt_events mrn         main.pas_patients.mrn           0.8
 DBI::dbDisconnect(con)
 ```

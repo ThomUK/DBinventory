@@ -21,6 +21,7 @@ inventory_run(
   views = TRUE,
   sample_rows = 1e+06,
   top_n = 10,
+  full_set_max = 50,
   top_values_max_distinct = 10000,
   keep_values = FALSE,
   resume = TRUE,
@@ -81,6 +82,12 @@ inventory_run(
 
   How many most-frequent values to record per column.
 
+- full_set_max:
+
+  Columns with at most this many distinct values have every value
+  recorded, not just the top `top_n`, so that a code list's frequency
+  table is complete and foreign key membership can be tested against it.
+
 - top_values_max_distinct:
 
   Only compute top values for columns with at most this many distinct
@@ -129,7 +136,7 @@ out <- inventory_run(fakehosp_path(), store = tempfile(fileext = ".sqlite"),
 #> ℹ 1 table found (sqlite dialect)
 #> ✔ Inventory of 1 table and 10 columns in 0s
 #> ℹ 0 foreign key candidates proposed
-#> ✔ Run complete in 0.2s: 10 column profiles in /tmp/RtmpZ9HBU4/file1b8932526ac0.sqlite
+#> ✔ Run complete in 0.1s: 10 column profiles in /tmp/RtmpDjk1SO/file1ac85ce3ab74.sqlite
 out$profile[, c("column_name", "semantic_type", "null_rate")]
 #> # A tibble: 10 × 3
 #>    column_name         semantic_type null_rate

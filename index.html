@@ -193,6 +193,11 @@
 </tbody>
 </table>
 </div>
+<div class="section level3">
+<h3 id="key-candidates">Key candidates<a class="anchor" aria-label="anchor" href="#key-candidates"></a>
+</h3>
+<p><code>pk_candidate</code> marks columns that are unique, never null and of a key-like type. <code>fk_candidate</code> and <code>fk_target</code> propose, for each column, the key column in another table it most looks like a reference to, from name evidence, membership in a small key’s complete value set, range containment, cardinality shape and value shape, with <code>fk_confidence</code> from 0 to 1 and <code>fk_evidence</code> spelling out the components. Both are <strong>candidates only</strong>: the profile cannot see whether a child’s values actually exist in the key, so the shortlist is confirmed or rejected by match-rate tests in the key register stage. The exclusions and the scoring are documented in <code><a href="reference/infer_foreign_keys.html">?infer_foreign_keys</a></code>.</p>
+</div>
 </div>
 <div class="section level2">
 <h2 id="design-decisions">Design decisions<a class="anchor" aria-label="anchor" href="#design-decisions"></a>

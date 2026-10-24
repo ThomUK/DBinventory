@@ -62,6 +62,7 @@ so that an interrupted run resumes where it stopped.</p>
 <span>  tables <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  sample_rows <span class="op">=</span> <span class="fl">1e+06</span>,</span>
 <span>  top_n <span class="op">=</span> <span class="fl">10</span>,</span>
+<span>  full_set_max <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>  top_values_max_distinct <span class="op">=</span> <span class="fl">10000</span>,</span>
 <span>  keep_values <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  store <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -96,6 +97,13 @@ sample of roughly this many rows. <code>Inf</code> disables sampling.</p></dd>
 
 <dt id="arg-top-n">top_n<a class="anchor" aria-label="anchor" href="#arg-top-n"></a></dt>
 <dd><p>How many most-frequent values to record per column.</p></dd>
+
+
+<dt id="arg-full-set-max">full_set_max<a class="anchor" aria-label="anchor" href="#arg-full-set-max"></a></dt>
+<dd><p>Columns with at most this many distinct values have
+every value recorded, not just the top <code>top_n</code>, so that a code list's
+frequency table is complete and foreign key membership can be tested
+against it.</p></dd>
 
 
 <dt id="arg-top-values-max-distinct">top_values_max_distinct<a class="anchor" aria-label="anchor" href="#arg-top-values-max-distinct"></a></dt>

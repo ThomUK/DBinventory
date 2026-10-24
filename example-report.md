@@ -7,9 +7,9 @@ Published
 October 24, 2026
 
 **46** tables and views, **523** columns, **30,233** rows in total.
-Profiled 523 columns in 46 tables in 2 seconds.
+Profiled 523 columns in 46 tables in 1 seconds.
 
-Last run started 2026-10-24 19:36:51 UTC against
+Last run started 2026-10-24 19:48:03 UTC against
 `/home/runner/work/_temp/Library/DBinventory/extdata/fakehosp.sqlite`
 (sqlite dialect), sampling tables above 1,000,000 rows, top 10 values
 per column, literal values suppressed for identifiers, free text and
@@ -86,14 +86,41 @@ columns matching under different names are the ones worth checking
 first. It is a starting point for the duplicate map, not a verdict:
 value-overlap tests confirm or reject it in the next stage.
 
+## Foreign key candidates
+
+Columns that look like references to a key column in another table,
+scored from profile statistics alone. **These are candidates, not
+confirmed relationships**: confirming one needs a match-rate query (what
+share of the child’s values exist in the key), which is the key
+register’s job in the next stage.
+
+A pair is excluded outright when the types differ, the child’s string
+lengths fall outside the key’s, a unique child shares the key’s
+fingerprint (a copy, not a reference), the key’s full value set is known
+and the child uses a value outside it, the child has more distinct
+values than a fully profiled key, the shapes of their values do not
+overlap (`100` cannot reference `Ward 3`), the child is a flag, the key
+is in the child’s own table without a self-referencing name, or the
+child is itself a key with no name evidence. Surviving pairs start at
+0.1 and add: name evidence (0.45 same name, 0.3 child name ends with the
+key name, 0.2 child name contains the key’s table stem; generic names
+like `id` or `code` earn nothing); up to 0.4 when every child value is
+in the key’s known value set, scaled by how much of the set the child
+uses; 0.25 (or -0.25) for the child’s range lying inside (or outside)
+the key’s when the value set is unknown; 0.15 for a many-to-one shape or
+0.05 for one-to-one; 0.1 for identical string lengths. The best target
+at or above 0.6 is reported; `n_targets` counts the keys that qualified,
+since a conformed code such as a site code legitimately matches several.
+Full detail: `?infer_foreign_keys`.
+
 ## Column profile
 
 `pk_candidate` marks columns that are unique, never null and of a type
 keys are made of; where `sampled` is true that is evidence from the
 sample only. `fk_candidate` and `fk_target` give the key column this
-column most looks like a reference to, scored from name, value range and
-cardinality (`fk_confidence`, 0 to 1); it is a shortlist for match-rate
-tests, not a confirmed relationship. `top_values` lists the most
+column most looks like a reference to, with `fk_confidence` from 0 to 1
+(see the foreign key candidates section above); both are blank for the
+many columns that are not candidates. `top_values` lists the most
 frequent values with their counts; blank where values are suppressed or
 the column has too many distinct values for a frequency table to be
 useful.
