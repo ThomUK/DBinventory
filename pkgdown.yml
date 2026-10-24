@@ -3,7 +3,8 @@ pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
   DBinventory: DBinventory.html
-last_built: 2026-10-24T16:52Z
+  articles/example_report: example_report.html
+last_built: 2026-10-24T18:11Z
 urls:
   reference: https://thomuk.github.io/DBinventory/reference
   article: https://thomuk.github.io/DBinventory/articles
