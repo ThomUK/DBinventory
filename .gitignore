@@ -9,3 +9,5 @@ inst/doc
 !inst/extdata/*.sqlite
 *.html
 docs/
+!pkgdown/assets/*.html
+!pkgdown/assets/*.json
