@@ -44,13 +44,9 @@ A `DBIConnection`. The caller disconnects it.
 ## Examples
 
 ``` r
-con <- db_connect(fakehosp_path())
-db_tables(con)[1:3, ]
-#> # A tibble: 3 × 4
-#>   table_catalog table_schema table_name       table_type
-#>   <chr>         <chr>        <chr>            <chr>     
-#> 1 NA            main         admission_method table     
-#> 2 NA            main         admission_source table     
-#> 3 NA            main         agg_ae_monthly   table     
-DBI::dbDisconnect(con)
+if (FALSE) { # \dontrun{
+con <- db_connect("Driver={ODBC Driver 18 for SQL Server};Server=warehouse;Database=DW;Trusted_Connection=yes;")
+con <- db_connect("warehouse_extract.sqlite")
+con <- db_connect("data/v2/sample")            # a directory of Parquet files
+} # }
 ```

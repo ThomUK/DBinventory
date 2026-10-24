@@ -49,15 +49,9 @@ A tibble with `table_catalog`, `table_schema`, `table_name`,
 ## Examples
 
 ``` r
-con <- fakehosp_connection()
-db_tables(con, include = "^main\\.pas_")
-#> # A tibble: 5 × 4
-#>   table_catalog table_schema table_name                  table_type
-#>   <chr>         <chr>        <chr>                       <chr>     
-#> 1 NA            main         pas_adt_events              table     
-#> 2 NA            main         pas_op_status_log           table     
-#> 3 NA            main         pas_outpatient_appointments table     
-#> 4 NA            main         pas_patients                table     
-#> 5 NA            main         pas_referrals               table     
-DBI::dbDisconnect(con)
+if (FALSE) { # \dontrun{
+con <- fakehospdata::fh_connect("sample")   # the synthetic trust
+db_tables(con, include = "^layer1\\.pas_")
+DBI::dbDisconnect(con, shutdown = TRUE)
+} # }
 ```

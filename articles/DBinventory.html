@@ -31,11 +31,12 @@
       <ul class="navbar-nav me-auto">
 <li class="active nav-item"><a class="nav-link" href="../articles/DBinventory.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="nav-item"><a class="nav-link" href="../articles/example_report.html">Example Report</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/example_report.html">Example Reports</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/example_report.html">Example report</a></li>
+<li><a class="dropdown-item" href="../articles/DBinventory.html">Getting started with DBinventory</a></li>
+    <li><a class="dropdown-item" href="../articles/example_report.html">Example reports</a></li>
   </ul>
 </li>
       </ul>
@@ -60,7 +61,7 @@
       <h1>Getting started with DBinventory</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/ThomUK/DBinventory/blob/main/vignettes/DBinventory.Rmd" class="external-link"><code>vignettes/DBinventory.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/ThomUK/DBinventory/blob/main/vignettes/articles/DBinventory.Rmd" class="external-link"><code>vignettes/articles/DBinventory.Rmd</code></a></small>
       <div class="d-none name"><code>DBinventory.Rmd</code></div>
     </div>
 
@@ -69,8 +70,10 @@
 <p>DBinventory answers two questions about a database you have
 <code>SELECT</code> access to and no documentation for: <em>what is in
 it</em> (the inventory) and <em>what does each column hold</em> (the
-column profile). This article walks through both on the synthetic
-hospital database bundled with the package.</p>
+column profile). This article walks through both on the 5% sample of the
+<a href="https://github.com/ThomUK/synthetic-hospital-data" class="external-link">Fake NHS
+Trust synthetic dataset</a>, read through its <code>fakehospdata</code>
+package: 53 tables in five schemas, about 3.6 million rows.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/ThomUK/DBinventory" class="external-link">DBinventory</a></span><span class="op">)</span></span></code></pre></div>
 <div class="section level2">
@@ -78,12 +81,22 @@ hospital database bundled with the package.</p>
 </h2>
 <p><code><a href="../reference/db_connect.html">db_connect()</a></code> takes whatever you have: a DBI connection,
 an ODBC connection string or DSN for SQL Server, a SQLite or DuckDB
-file, or a Parquet file or directory. The bundled fixture is a SQLite
-file.</p>
+file, or a Parquet file or directory.
+<code><a href="https://rdrr.io/pkg/fakehospdata/man/fh_connect.html" class="external-link">fakehospdata::fh_connect()</a></code> downloads the sample once into a
+cache and returns a DuckDB connection of views, which
+<code><a href="../reference/db_connect.html">db_connect()</a></code> passes through.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">con</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/db_connect.html">db_connect</a></span><span class="op">(</span><span class="fu"><a href="../reference/fakehosp_path.html">fakehosp_path</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">con</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/db_connect.html">db_connect</a></span><span class="op">(</span><span class="fu">fakehospdata</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/fakehospdata/man/fh_connect.html" class="external-link">fh_connect</a></span><span class="op">(</span><span class="st">"sample"</span>, quiet <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; duckdb keeps downloaded extensions and secrets in a temporary directory:</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> /tmp/RtmpLCE5TF/duckdb</span></span>
+<span><span class="co">#&gt; This is removed when the R session ends.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Extensions are re-downloaded each session.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Secrets are lost.</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> Run duckdb(shared_home = TRUE) (or create ~/.duckdb) to keep them (suitable for most users).</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> Run duckdb(shared_home = FALSE) to accept the temporary directory (and silence this message).</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> See ?duckdb_storage for details and alternatives.</span></span>
 <span><span class="fu"><a href="../reference/db_dialect.html">db_dialect</a></span><span class="op">(</span><span class="va">con</span><span class="op">)</span></span>
-<span><span class="co">#&gt; &lt;db_dialect: sqlite&gt;</span></span></code></pre></div>
+<span><span class="co">#&gt; &lt;db_dialect: duckdb&gt;</span></span></code></pre></div>
 <p>On a hospital warehouse it would be:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">con</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/db_connect.html">db_connect</a></span><span class="op">(</span><span class="st">"Driver={ODBC Driver 18 for SQL Server};Server=warehouse;Database=DW;Trusted_Connection=yes;TrustServerCertificate=yes;"</span><span class="op">)</span></span></code></pre></div>
@@ -97,19 +110,24 @@ available, and the newest value in any date or datetime column as a
 freshness signal. Regular expressions on <code>schema.table</code>
 narrow the scope.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">inv</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/db_inventory.html">db_inventory</a></span><span class="op">(</span><span class="va">con</span>, include <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pas_"</span>, <span class="st">"v_emergency"</span><span class="op">)</span>, progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> 6 tables found (sqlite dialect)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Inventory of 6 tables and 70 columns in 0.2s</span></span>
-<span><span class="va">inv</span><span class="op">$</span><span class="va">tables</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"table_name"</span>, <span class="st">"table_type"</span>, <span class="st">"n_columns"</span>, <span class="st">"row_count"</span>, <span class="st">"newest_datetime"</span>, <span class="st">"newest_datetime_column"</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 6 × 6</span></span></span>
-<span><span class="co">#&gt;   table_name                  table_type n_columns row_count newest_datetime    </span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>              </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> pas_adt_events              table             20      <span style="text-decoration: underline;">1</span>000 2026-03-31 10:22:32</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> pas_op_status_log           table              8      <span style="text-decoration: underline;">1</span>000 2026-03-30 17:58:28</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span> pas_outpatient_appointments table             16      <span style="text-decoration: underline;">1</span>000 2026-03-31 14:40:00</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span> pas_patients                table             10      <span style="text-decoration: underline;">1</span>000 2026-02-06         </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> pas_referrals               table             11      <span style="text-decoration: underline;">1</span>000 2026-03-30         </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span> v_emergency_spells          view               5       446 2026-03-31 16:25:03</span></span>
+<code class="sourceCode R"><span><span class="va">inv</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/db_inventory.html">db_inventory</a></span><span class="op">(</span><span class="va">con</span>, schema <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"layer1"</span>, <span class="st">"reference"</span><span class="op">)</span>, progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> 23 tables found (duckdb dialect)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Inventory of 23 tables and 207 columns in 0.3s</span></span>
+<span><span class="va">inv</span><span class="op">$</span><span class="va">tables</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"table_schema"</span>, <span class="st">"table_name"</span>, <span class="st">"n_columns"</span>, <span class="st">"row_count"</span>, <span class="st">"newest_datetime"</span>, <span class="st">"newest_datetime_column"</span><span class="op">)</span><span class="op">]</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 23 × 6</span></span></span>
+<span><span class="co">#&gt;    table_schema table_name                  n_columns row_count newest_datetime </span></span>
+<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> layer1       ed_attendances                     22     <span style="text-decoration: underline;">40</span>459 2026-04-01 08:1…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> layer1       ed_status_log                       5    <span style="text-decoration: underline;">172</span>721 2026-04-01 08:1…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> layer1       endo_procedures                    23      <span style="text-decoration: underline;">3</span>624 <span style="color: #BB0000;">NA</span>              </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> layer1       pas_adt_events                     20    <span style="text-decoration: underline;">137</span>841 2026-04-03 00:5…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> layer1       pas_op_status_log                   8   1<span style="text-decoration: underline;">095</span>625 2026-03-31 19:3…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> layer1       pas_outpatient_appointments        16    <span style="text-decoration: underline;">316</span>262 2026-03-31 16:2…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> layer1       pas_patients                       10     <span style="text-decoration: underline;">40</span>300 2026-04-01      </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> layer1       pas_referrals                      11    <span style="text-decoration: underline;">105</span>953 2026-04-18      </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> layer1       ris_imaging                        29     <span style="text-decoration: underline;">49</span>175 2026-05-25 22:0…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> reference    admission_method                    3        11 <span style="color: #BB0000;">NA</span>              </span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 13 more rows</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: newest_datetime_column &lt;chr&gt;</span></span></span></code></pre></div>
 <p>Columns carry a <code>type_class</code> that normalises engine type
 names, which is what decides which statistics the profiler can ask
@@ -119,14 +137,14 @@ for.</p>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 10 × 3</span></span></span>
 <span><span class="co">#&gt;    column_name         data_type type_class</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>               <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> mrn                 TEXT      string    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> nhs_number          TEXT      string    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> nhs_number_status   TEXT      string    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> sex                 TEXT      string    </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> mrn                 VARCHAR   string    </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> nhs_number          VARCHAR   string    </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> nhs_number_status   VARCHAR   string    </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> sex                 VARCHAR   string    </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> dob                 DATE      date      </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> ethnicity           TEXT      string    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> gp_practice         TEXT      string    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> postcode            TEXT      string    </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> ethnicity           VARCHAR   string    </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> gp_practice         VARCHAR   string    </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> postcode            VARCHAR   string    </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> registered_datetime TIMESTAMP datetime  </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> date_of_death       DATE      date</span></span></code></pre></div>
 </div>
@@ -137,24 +155,29 @@ for.</p>
 by column) plus one frequency query per column that has few enough
 distinct values for a frequency table to mean something. Tables above
 <code>sample_rows</code> are profiled on a sample materialised in a
-temporary table.</p>
+temporary table; here that threshold is set low so the audit logs are
+sampled.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">prof</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/db_profile.html">db_profile</a></span><span class="op">(</span><span class="va">con</span>, <span class="va">inv</span>, progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">prof</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/db_profile.html">db_profile</a></span><span class="op">(</span><span class="va">con</span>, <span class="va">inv</span>, sample_rows <span class="op">=</span> <span class="fl">2e5</span>, progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">prof</span><span class="op">$</span><span class="va">sampled</span><span class="op">)</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; FALSE  TRUE </span></span>
+<span><span class="co">#&gt;   183    24</span></span>
 <span><span class="va">prof</span><span class="op">[</span><span class="va">prof</span><span class="op">$</span><span class="va">table_name</span> <span class="op">==</span> <span class="st">"pas_patients"</span>,</span>
 <span>     <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"column_name"</span>, <span class="st">"null_rate"</span>, <span class="st">"distinct_count"</span>, <span class="st">"is_unique"</span>, <span class="st">"pk_candidate"</span>, <span class="st">"semantic_type"</span>, <span class="st">"values_suppressed"</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 10 × 7</span></span></span>
 <span><span class="co">#&gt;    column_name     null_rate distinct_count is_unique pk_candidate semantic_type</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>               <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>        </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> mrn                 0               <span style="text-decoration: underline;">1</span>000 TRUE      TRUE         identifier   </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> nhs_number          0.007            993 TRUE      FALSE        identifier   </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> nhs_number_sta…     0                  2 FALSE     FALSE        code         </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> sex                 0                  2 FALSE     FALSE        code         </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> dob                 0                981 FALSE     FALSE        date         </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> ethnicity           0                 17 FALSE     FALSE        code         </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> gp_practice         0                 90 FALSE     FALSE        category     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> postcode            0                995 FALSE     FALSE        identifier   </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> registered_dat…     0               <span style="text-decoration: underline;">1</span>000 TRUE      FALSE        datetime     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> date_of_death       0.987             13 TRUE      FALSE        date         </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> mrn               0                <span style="text-decoration: underline;">40</span>300 TRUE      TRUE         identifier   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> nhs_number        0.003<span style="text-decoration: underline;">40</span>          <span style="text-decoration: underline;">40</span>051 FALSE     FALSE        identifier   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> nhs_number_sta…   0                    2 FALSE     FALSE        code         </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> sex               0                    2 FALSE     FALSE        code         </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> dob               0                <span style="text-decoration: underline;">23</span>502 FALSE     FALSE        date         </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> ethnicity         0                   17 FALSE     FALSE        code         </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> gp_practice       0                   90 FALSE     FALSE        code         </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> postcode          0                <span style="text-decoration: underline;">28</span>643 FALSE     FALSE        identifier   </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> registered_dat…   0                <span style="text-decoration: underline;">40</span>297 FALSE     FALSE        datetime     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> date_of_death     0.987              430 FALSE     FALSE        date         </span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: values_suppressed &lt;lgl&gt;</span></span></span></code></pre></div>
 <p>Literal values are suppressed by default for identifiers, free text
 and columns whose names suggest personal data, because the profile of a
@@ -162,49 +185,50 @@ hospital warehouse will end up in a repository. Codes and dates keep
 theirs:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/top_values_of.html">top_values_of</a></span><span class="op">(</span><span class="va">prof</span>, <span class="st">"pas_patients"</span>, <span class="st">"ethnicity"</span><span class="op">)</span></span>
-<span><span class="co">#&gt;    value   n</span></span>
-<span><span class="co">#&gt; 1      A 775</span></span>
-<span><span class="co">#&gt; 2      Z  55</span></span>
-<span><span class="co">#&gt; 3      C  37</span></span>
-<span><span class="co">#&gt; 4      H  22</span></span>
-<span><span class="co">#&gt; 5      J  14</span></span>
-<span><span class="co">#&gt; 6      N  14</span></span>
-<span><span class="co">#&gt; 7      D  13</span></span>
-<span><span class="co">#&gt; 8      S  13</span></span>
-<span><span class="co">#&gt; 9      B  12</span></span>
-<span><span class="co">#&gt; 10     L   9</span></span>
-<span><span class="co">#&gt; 11     K   8</span></span>
-<span><span class="co">#&gt; 12     M   7</span></span>
-<span><span class="co">#&gt; 13     F   6</span></span>
-<span><span class="co">#&gt; 14     R   5</span></span>
-<span><span class="co">#&gt; 15     E   4</span></span>
-<span><span class="co">#&gt; 16     P   4</span></span>
-<span><span class="co">#&gt; 17     G   2</span></span>
+<span><span class="co">#&gt;    value     n</span></span>
+<span><span class="co">#&gt; 1      A 31376</span></span>
+<span><span class="co">#&gt; 2      Z  2392</span></span>
+<span><span class="co">#&gt; 3      C  1207</span></span>
+<span><span class="co">#&gt; 4      H  1016</span></span>
+<span><span class="co">#&gt; 5      S   628</span></span>
+<span><span class="co">#&gt; 6      N   604</span></span>
+<span><span class="co">#&gt; 7      J   579</span></span>
+<span><span class="co">#&gt; 8      B   479</span></span>
+<span><span class="co">#&gt; 9      D   359</span></span>
+<span><span class="co">#&gt; 10     K   311</span></span>
+<span><span class="co">#&gt; 11     M   269</span></span>
+<span><span class="co">#&gt; 12     L   245</span></span>
+<span><span class="co">#&gt; 13     P   217</span></span>
+<span><span class="co">#&gt; 14     E   183</span></span>
+<span><span class="co">#&gt; 15     F   153</span></span>
+<span><span class="co">#&gt; 16     R   150</span></span>
+<span><span class="co">#&gt; 17     G   132</span></span>
 <span><span class="va">prof</span><span class="op">[</span><span class="va">prof</span><span class="op">$</span><span class="va">column_name</span> <span class="op">==</span> <span class="st">"dob"</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"min_value"</span>, <span class="st">"max_value"</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 1 × 2</span></span></span>
 <span><span class="co">#&gt;   min_value  max_value </span></span>
 <span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> 1925-05-01 2024-07-16</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> 1924-10-02 2024-09-29</span></span></code></pre></div>
 <p>The hashes are computed before suppression, so copies of a suppressed
 column in other tables still match on fingerprint:</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">inv2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/db_inventory.html">db_inventory</a></span><span class="op">(</span><span class="va">con</span>, include <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pas_outpatient_appointments"</span>, <span class="st">"derived_op_appointments"</span><span class="op">)</span>, progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> 2 tables found (sqlite dialect)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Inventory of 2 tables and 44 columns in 0s</span></span>
-<span><span class="va">prof2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/db_profile.html">db_profile</a></span><span class="op">(</span><span class="va">con</span>, <span class="va">inv2</span>, progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="va">inv2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/db_inventory.html">db_inventory</a></span><span class="op">(</span><span class="va">con</span>, include <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"layer1\\.pas_outpatient_appointments"</span>, <span class="st">"derived\\.op_appointments"</span>, <span class="st">"reference\\."</span><span class="op">)</span>, progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> 16 tables found (duckdb dialect)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Inventory of 16 tables and 107 columns in 0.1s</span></span>
+<span><span class="va">prof2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/db_profile.html">db_profile</a></span><span class="op">(</span><span class="va">con</span>, <span class="va">inv2</span>, sample_rows <span class="op">=</span> <span class="fl">2e5</span>, progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/duplicate_candidates.html">duplicate_candidates</a></span><span class="op">(</span><span class="va">prof2</span><span class="op">)</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"n_tables"</span>, <span class="st">"columns"</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 9 × 2</span></span></span>
-<span><span class="co">#&gt;   n_tables columns                                                              </span></span>
-<span><span class="co">#&gt;      <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                                                                </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>        2 main.derived_op_appointments.mrn_as_recorded; main.derived_op_appoin…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>        2 main.derived_op_appointments.referral_id; main.pas_outpatient_appoin…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>        2 main.derived_op_appointments.clinic_code; main.pas_outpatient_appoin…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>        2 main.derived_op_appointments.consultant_code; main.pas_outpatient_ap…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span>        2 main.derived_op_appointments.dnadate; main.pas_outpatient_appointmen…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span>        2 main.derived_op_appointments.apptdate; main.pas_outpatient_appointme…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">7</span>        2 main.derived_op_appointments.attendkey; main.pas_outpatient_appointm…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">8</span>        2 main.derived_op_appointments.cancelled_datetime; main.pas_outpatient…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">9</span>        2 main.derived_op_appointments.booked_datetime; main.pas_outpatient_ap…</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 10 × 2</span></span></span>
+<span><span class="co">#&gt;    n_tables columns                                                             </span></span>
+<span><span class="co">#&gt;       <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                                                               </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>        2 derived.op_appointments.mrn_as_recorded; derived.op_appointments.pe…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>        2 derived.op_appointments.consultant_code; layer1.pas_outpatient_appo…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>        2 derived.op_appointments.clinic_code; layer1.pas_outpatient_appointm…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>        2 derived.op_appointments.dnadate; layer1.pas_outpatient_appointments…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>        2 derived.op_appointments.apptdate; layer1.pas_outpatient_appointment…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>        2 derived.op_appointments.cancelled_datetime; layer1.pas_outpatient_a…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>        2 reference.consultants.tfc; reference.specialties.tfc                </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>        2 derived.op_appointments.attendkey; layer1.pas_outpatient_appointmen…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>        2 derived.op_appointments.booked_datetime; layer1.pas_outpatient_appo…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>        2 derived.op_appointments.referral_id; layer1.pas_outpatient_appointm…</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="foreign-key-candidates">Foreign key candidates<a class="anchor" aria-label="anchor" href="#foreign-key-candidates"></a>
@@ -216,9 +240,28 @@ becomes <code>fk_target</code>. It is a shortlist for the key register’s
 match-rate tests, not a confirmed relationship.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">prof2</span><span class="op">[</span><span class="va">prof2</span><span class="op">$</span><span class="va">fk_candidate</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"table_name"</span>, <span class="st">"column_name"</span>, <span class="st">"fk_target"</span>, <span class="st">"fk_confidence"</span>, <span class="st">"fk_evidence"</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 0 × 5</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 5 variables: table_name &lt;chr&gt;, column_name &lt;chr&gt;, fk_target &lt;chr&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   fk_confidence &lt;dbl&gt;, fk_evidence &lt;chr&gt;</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 19 × 5</span></span></span>
+<span><span class="co">#&gt;    table_name                  column_name   fk_target fk_confidence fk_evidence</span></span>
+<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> op_appointments             sitetret      referenc…          0.95 name=stem;…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> op_appointments             clinic_code   referenc…          0.8  name=exact…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> op_appointments             tretspef      referenc…          0.71 name=none;…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> op_appointments             consultant_c… referenc…          0.8  name=exact…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> op_appointments             attended      referenc…          0.75 name=none;…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> pas_outpatient_appointments site_code     referenc…          1    name=exact…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> pas_outpatient_appointments clinic_code   referenc…          0.8  name=exact…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> pas_outpatient_appointments specialty_co… referenc…          0.91 name=stem;…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> pas_outpatient_appointments consultant_c… referenc…          0.8  name=exact…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> pas_outpatient_appointments attendance_s… referenc…          0.95 name=stem;…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">11</span> beds                        site_code     referenc…          1    name=exact…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">12</span> beds                        ward_id       referenc…          1    name=exact…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">13</span> beds                        ward_name     referenc…          1    name=exact…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">14</span> clinics                     site_code     referenc…          1    name=exact…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">15</span> clinics                     tfc           referenc…          1    name=exact…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">16</span> consultants                 tfc           referenc…          1    name=exact…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">17</span> consultants                 main_site     referenc…          0.95 name=stem;…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">18</span> wards                       site_code     referenc…          1    name=exact…</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">19</span> wards                       tfc           referenc…          1    name=exact…</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="store-resume-and-report">Store, resume and report<a class="anchor" aria-label="anchor" href="#store-resume-and-report"></a>
@@ -236,7 +279,7 @@ report at the end.</p>
 <span>  report <span class="op">=</span> <span class="st">"dw_inventory.html"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">DBI</span><span class="fu">::</span><span class="fu"><a href="https://dbi.r-dbi.org/reference/dbDisconnect.html" class="external-link">dbDisconnect</a></span><span class="op">(</span><span class="va">con</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">DBI</span><span class="fu">::</span><span class="fu"><a href="https://dbi.r-dbi.org/reference/dbDisconnect.html" class="external-link">dbDisconnect</a></span><span class="op">(</span><span class="va">con</span>, shutdown <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

@@ -137,24 +137,12 @@ and `store` (the store path).
 ## Examples
 
 ``` r
-out <- inventory_run(fakehosp_path(), store = tempfile(fileext = ".sqlite"),
-                     include = "pas_patients", organisation = "Fake NHS Trust", progress = FALSE)
-#> ℹ 1 table found (sqlite dialect)
-#> ✔ Inventory of 1 table and 10 columns in 0s
-#> ℹ 0 foreign key candidates proposed
-#> ✔ Run complete in 0.2s: 10 column profiles in /tmp/RtmptL9c8Q/file1b7951dd87fe.sqlite
-out$profile[, c("column_name", "semantic_type", "null_rate")]
-#> # A tibble: 10 × 3
-#>    column_name         semantic_type null_rate
-#>    <chr>               <chr>             <dbl>
-#>  1 mrn                 identifier        0    
-#>  2 nhs_number          identifier        0.007
-#>  3 nhs_number_status   code              0    
-#>  4 sex                 code              0    
-#>  5 dob                 date              0    
-#>  6 ethnicity           code              0    
-#>  7 gp_practice         category          0    
-#>  8 postcode            identifier        0    
-#>  9 registered_datetime datetime          0    
-#> 10 date_of_death       date              0.987
+if (FALSE) { # \dontrun{
+# the synthetic trust, through the fakehospdata package
+con <- fakehospdata::fh_connect("sample")
+out <- inventory_run(con, store = "fakehosp_inventory.sqlite", organisation = "Fake NHS Trust",
+                     report = "fakehosp_inventory.html")
+out$profile[, c("table_name", "column_name", "semantic_type", "null_rate")]
+DBI::dbDisconnect(con, shutdown = TRUE)
+} # }
 ```

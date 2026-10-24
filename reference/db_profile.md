@@ -115,24 +115,11 @@ store by
 ## Examples
 
 ``` r
-con <- fakehosp_connection()
+if (FALSE) { # \dontrun{
+con <- fakehospdata::fh_connect("sample")
 inv <- db_inventory(con, include = "pas_patients", progress = FALSE)
-#> ℹ 1 table found (sqlite dialect)
-#> ✔ Inventory of 1 table and 10 columns in 0s
 prof <- db_profile(con, inv, progress = FALSE)
 prof[, c("column_name", "null_rate", "distinct_count", "semantic_type")]
-#> # A tibble: 10 × 4
-#>    column_name         null_rate distinct_count semantic_type
-#>    <chr>                   <dbl>          <dbl> <chr>        
-#>  1 mrn                     0               1000 identifier   
-#>  2 nhs_number              0.007            993 identifier   
-#>  3 nhs_number_status       0                  2 code         
-#>  4 sex                     0                  2 code         
-#>  5 dob                     0                981 date         
-#>  6 ethnicity               0                 17 code         
-#>  7 gp_practice             0                 90 category     
-#>  8 postcode                0                995 identifier   
-#>  9 registered_datetime     0               1000 datetime     
-#> 10 date_of_death           0.987             13 date         
-DBI::dbDisconnect(con)
+DBI::dbDisconnect(con, shutdown = TRUE)
+} # }
 ```

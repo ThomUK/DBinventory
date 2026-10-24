@@ -3,8 +3,10 @@
 DBinventory answers two questions about a database you have `SELECT`
 access to and no documentation for: *what is in it* (the inventory) and
 *what does each column hold* (the column profile). This article walks
-through both on the synthetic hospital database bundled with the
-package.
+through both on the 5% sample of the [Fake NHS Trust synthetic
+dataset](https://github.com/ThomUK/synthetic-hospital-data), read
+through its `fakehospdata` package: 53 tables in five schemas, about 3.6
+million rows.
 
 ``` r
 
@@ -16,13 +18,26 @@ library(DBinventory)
 [`db_connect()`](https://thomuk.github.io/DBinventory/reference/db_connect.md)
 takes whatever you have: a DBI connection, an ODBC connection string or
 DSN for SQL Server, a SQLite or DuckDB file, or a Parquet file or
-directory. The bundled fixture is a SQLite file.
+directory.
+[`fakehospdata::fh_connect()`](https://rdrr.io/pkg/fakehospdata/man/fh_connect.html)
+downloads the sample once into a cache and returns a DuckDB connection
+of views, which
+[`db_connect()`](https://thomuk.github.io/DBinventory/reference/db_connect.md)
+passes through.
 
 ``` r
 
-con <- db_connect(fakehosp_path())
+con <- db_connect(fakehospdata::fh_connect("sample", quiet = TRUE))
+#> duckdb keeps downloaded extensions and secrets in a temporary directory:
+#> ℹ /tmp/RtmpLCE5TF/duckdb
+#> This is removed when the R session ends.
+#> • Extensions are re-downloaded each session.
+#> • Secrets are lost.
+#> ℹ Run duckdb(shared_home = TRUE) (or create ~/.duckdb) to keep them (suitable for most users).
+#> ℹ Run duckdb(shared_home = FALSE) to accept the temporary directory (and silence this message).
+#> ℹ See ?duckdb_storage for details and alternatives.
 db_dialect(con)
-#> <db_dialect: sqlite>
+#> <db_dialect: duckdb>
 ```
 
 On a hospital warehouse it would be:
@@ -42,19 +57,24 @@ expressions on `schema.table` narrow the scope.
 
 ``` r
 
-inv <- db_inventory(con, include = c("pas_", "v_emergency"), progress = FALSE)
-#> ℹ 6 tables found (sqlite dialect)
-#> ✔ Inventory of 6 tables and 70 columns in 0.2s
-inv$tables[, c("table_name", "table_type", "n_columns", "row_count", "newest_datetime", "newest_datetime_column")]
-#> # A tibble: 6 × 6
-#>   table_name                  table_type n_columns row_count newest_datetime    
-#>   <chr>                       <chr>          <int>     <dbl> <chr>              
-#> 1 pas_adt_events              table             20      1000 2026-03-31 10:22:32
-#> 2 pas_op_status_log           table              8      1000 2026-03-30 17:58:28
-#> 3 pas_outpatient_appointments table             16      1000 2026-03-31 14:40:00
-#> 4 pas_patients                table             10      1000 2026-02-06         
-#> 5 pas_referrals               table             11      1000 2026-03-30         
-#> 6 v_emergency_spells          view               5       446 2026-03-31 16:25:03
+inv <- db_inventory(con, schema = c("layer1", "reference"), progress = FALSE)
+#> ℹ 23 tables found (duckdb dialect)
+#> ✔ Inventory of 23 tables and 207 columns in 0.3s
+inv$tables[, c("table_schema", "table_name", "n_columns", "row_count", "newest_datetime", "newest_datetime_column")]
+#> # A tibble: 23 × 6
+#>    table_schema table_name                  n_columns row_count newest_datetime 
+#>    <chr>        <chr>                           <int>     <dbl> <chr>           
+#>  1 layer1       ed_attendances                     22     40459 2026-04-01 08:1…
+#>  2 layer1       ed_status_log                       5    172721 2026-04-01 08:1…
+#>  3 layer1       endo_procedures                    23      3624 NA              
+#>  4 layer1       pas_adt_events                     20    137841 2026-04-03 00:5…
+#>  5 layer1       pas_op_status_log                   8   1095625 2026-03-31 19:3…
+#>  6 layer1       pas_outpatient_appointments        16    316262 2026-03-31 16:2…
+#>  7 layer1       pas_patients                       10     40300 2026-04-01      
+#>  8 layer1       pas_referrals                      11    105953 2026-04-18      
+#>  9 layer1       ris_imaging                        29     49175 2026-05-25 22:0…
+#> 10 reference    admission_method                    3        11 NA              
+#> # ℹ 13 more rows
 #> # ℹ 1 more variable: newest_datetime_column <chr>
 ```
 
@@ -67,14 +87,14 @@ inv$columns[inv$columns$table_name == "pas_patients", c("column_name", "data_typ
 #> # A tibble: 10 × 3
 #>    column_name         data_type type_class
 #>    <chr>               <chr>     <chr>     
-#>  1 mrn                 TEXT      string    
-#>  2 nhs_number          TEXT      string    
-#>  3 nhs_number_status   TEXT      string    
-#>  4 sex                 TEXT      string    
+#>  1 mrn                 VARCHAR   string    
+#>  2 nhs_number          VARCHAR   string    
+#>  3 nhs_number_status   VARCHAR   string    
+#>  4 sex                 VARCHAR   string    
 #>  5 dob                 DATE      date      
-#>  6 ethnicity           TEXT      string    
-#>  7 gp_practice         TEXT      string    
-#>  8 postcode            TEXT      string    
+#>  6 ethnicity           VARCHAR   string    
+#>  7 gp_practice         VARCHAR   string    
+#>  8 postcode            VARCHAR   string    
 #>  9 registered_datetime TIMESTAMP datetime  
 #> 10 date_of_death       DATE      date
 ```
@@ -85,26 +105,31 @@ inv$columns[inv$columns$table_name == "pas_patients", c("column_name", "data_typ
 runs one aggregate query per table (batched by column) plus one
 frequency query per column that has few enough distinct values for a
 frequency table to mean something. Tables above `sample_rows` are
-profiled on a sample materialised in a temporary table.
+profiled on a sample materialised in a temporary table; here that
+threshold is set low so the audit logs are sampled.
 
 ``` r
 
-prof <- db_profile(con, inv, progress = FALSE)
+prof <- db_profile(con, inv, sample_rows = 2e5, progress = FALSE)
+table(prof$sampled)
+#> 
+#> FALSE  TRUE 
+#>   183    24
 prof[prof$table_name == "pas_patients",
      c("column_name", "null_rate", "distinct_count", "is_unique", "pk_candidate", "semantic_type", "values_suppressed")]
 #> # A tibble: 10 × 7
 #>    column_name     null_rate distinct_count is_unique pk_candidate semantic_type
 #>    <chr>               <dbl>          <dbl> <lgl>     <lgl>        <chr>        
-#>  1 mrn                 0               1000 TRUE      TRUE         identifier   
-#>  2 nhs_number          0.007            993 TRUE      FALSE        identifier   
-#>  3 nhs_number_sta…     0                  2 FALSE     FALSE        code         
-#>  4 sex                 0                  2 FALSE     FALSE        code         
-#>  5 dob                 0                981 FALSE     FALSE        date         
-#>  6 ethnicity           0                 17 FALSE     FALSE        code         
-#>  7 gp_practice         0                 90 FALSE     FALSE        category     
-#>  8 postcode            0                995 FALSE     FALSE        identifier   
-#>  9 registered_dat…     0               1000 TRUE      FALSE        datetime     
-#> 10 date_of_death       0.987             13 TRUE      FALSE        date         
+#>  1 mrn               0                40300 TRUE      TRUE         identifier   
+#>  2 nhs_number        0.00340          40051 FALSE     FALSE        identifier   
+#>  3 nhs_number_sta…   0                    2 FALSE     FALSE        code         
+#>  4 sex               0                    2 FALSE     FALSE        code         
+#>  5 dob               0                23502 FALSE     FALSE        date         
+#>  6 ethnicity         0                   17 FALSE     FALSE        code         
+#>  7 gp_practice       0                   90 FALSE     FALSE        code         
+#>  8 postcode          0                28643 FALSE     FALSE        identifier   
+#>  9 registered_dat…   0                40297 FALSE     FALSE        datetime     
+#> 10 date_of_death     0.987              430 FALSE     FALSE        date         
 #> # ℹ 1 more variable: values_suppressed <lgl>
 ```
 
@@ -116,29 +141,29 @@ theirs:
 ``` r
 
 top_values_of(prof, "pas_patients", "ethnicity")
-#>    value   n
-#> 1      A 775
-#> 2      Z  55
-#> 3      C  37
-#> 4      H  22
-#> 5      J  14
-#> 6      N  14
-#> 7      D  13
-#> 8      S  13
-#> 9      B  12
-#> 10     L   9
-#> 11     K   8
-#> 12     M   7
-#> 13     F   6
-#> 14     R   5
-#> 15     E   4
-#> 16     P   4
-#> 17     G   2
+#>    value     n
+#> 1      A 31376
+#> 2      Z  2392
+#> 3      C  1207
+#> 4      H  1016
+#> 5      S   628
+#> 6      N   604
+#> 7      J   579
+#> 8      B   479
+#> 9      D   359
+#> 10     K   311
+#> 11     M   269
+#> 12     L   245
+#> 13     P   217
+#> 14     E   183
+#> 15     F   153
+#> 16     R   150
+#> 17     G   132
 prof[prof$column_name == "dob", c("min_value", "max_value")]
 #> # A tibble: 1 × 2
 #>   min_value  max_value 
 #>   <chr>      <chr>     
-#> 1 1925-05-01 2024-07-16
+#> 1 1924-10-02 2024-09-29
 ```
 
 The hashes are computed before suppression, so copies of a suppressed
@@ -146,23 +171,24 @@ column in other tables still match on fingerprint:
 
 ``` r
 
-inv2 <- db_inventory(con, include = c("pas_outpatient_appointments", "derived_op_appointments"), progress = FALSE)
-#> ℹ 2 tables found (sqlite dialect)
-#> ✔ Inventory of 2 tables and 44 columns in 0s
-prof2 <- db_profile(con, inv2, progress = FALSE)
+inv2 <- db_inventory(con, include = c("layer1\\.pas_outpatient_appointments", "derived\\.op_appointments", "reference\\."), progress = FALSE)
+#> ℹ 16 tables found (duckdb dialect)
+#> ✔ Inventory of 16 tables and 107 columns in 0.1s
+prof2 <- db_profile(con, inv2, sample_rows = 2e5, progress = FALSE)
 duplicate_candidates(prof2)[, c("n_tables", "columns")]
-#> # A tibble: 9 × 2
-#>   n_tables columns                                                              
-#>      <int> <chr>                                                                
-#> 1        2 main.derived_op_appointments.mrn_as_recorded; main.derived_op_appoin…
-#> 2        2 main.derived_op_appointments.referral_id; main.pas_outpatient_appoin…
-#> 3        2 main.derived_op_appointments.clinic_code; main.pas_outpatient_appoin…
-#> 4        2 main.derived_op_appointments.consultant_code; main.pas_outpatient_ap…
-#> 5        2 main.derived_op_appointments.dnadate; main.pas_outpatient_appointmen…
-#> 6        2 main.derived_op_appointments.apptdate; main.pas_outpatient_appointme…
-#> 7        2 main.derived_op_appointments.attendkey; main.pas_outpatient_appointm…
-#> 8        2 main.derived_op_appointments.cancelled_datetime; main.pas_outpatient…
-#> 9        2 main.derived_op_appointments.booked_datetime; main.pas_outpatient_ap…
+#> # A tibble: 10 × 2
+#>    n_tables columns                                                             
+#>       <int> <chr>                                                               
+#>  1        2 derived.op_appointments.mrn_as_recorded; derived.op_appointments.pe…
+#>  2        2 derived.op_appointments.consultant_code; layer1.pas_outpatient_appo…
+#>  3        2 derived.op_appointments.clinic_code; layer1.pas_outpatient_appointm…
+#>  4        2 derived.op_appointments.dnadate; layer1.pas_outpatient_appointments…
+#>  5        2 derived.op_appointments.apptdate; layer1.pas_outpatient_appointment…
+#>  6        2 derived.op_appointments.cancelled_datetime; layer1.pas_outpatient_a…
+#>  7        2 reference.consultants.tfc; reference.specialties.tfc                
+#>  8        2 derived.op_appointments.attendkey; layer1.pas_outpatient_appointmen…
+#>  9        2 derived.op_appointments.booked_datetime; layer1.pas_outpatient_appo…
+#> 10        2 derived.op_appointments.referral_id; layer1.pas_outpatient_appointm…
 ```
 
 ## Foreign key candidates
@@ -176,9 +202,28 @@ not a confirmed relationship.
 ``` r
 
 prof2[prof2$fk_candidate, c("table_name", "column_name", "fk_target", "fk_confidence", "fk_evidence")]
-#> # A tibble: 0 × 5
-#> # ℹ 5 variables: table_name <chr>, column_name <chr>, fk_target <chr>,
-#> #   fk_confidence <dbl>, fk_evidence <chr>
+#> # A tibble: 19 × 5
+#>    table_name                  column_name   fk_target fk_confidence fk_evidence
+#>    <chr>                       <chr>         <chr>             <dbl> <chr>      
+#>  1 op_appointments             sitetret      referenc…          0.95 name=stem;…
+#>  2 op_appointments             clinic_code   referenc…          0.8  name=exact…
+#>  3 op_appointments             tretspef      referenc…          0.71 name=none;…
+#>  4 op_appointments             consultant_c… referenc…          0.8  name=exact…
+#>  5 op_appointments             attended      referenc…          0.75 name=none;…
+#>  6 pas_outpatient_appointments site_code     referenc…          1    name=exact…
+#>  7 pas_outpatient_appointments clinic_code   referenc…          0.8  name=exact…
+#>  8 pas_outpatient_appointments specialty_co… referenc…          0.91 name=stem;…
+#>  9 pas_outpatient_appointments consultant_c… referenc…          0.8  name=exact…
+#> 10 pas_outpatient_appointments attendance_s… referenc…          0.95 name=stem;…
+#> 11 beds                        site_code     referenc…          1    name=exact…
+#> 12 beds                        ward_id       referenc…          1    name=exact…
+#> 13 beds                        ward_name     referenc…          1    name=exact…
+#> 14 clinics                     site_code     referenc…          1    name=exact…
+#> 15 clinics                     tfc           referenc…          1    name=exact…
+#> 16 consultants                 tfc           referenc…          1    name=exact…
+#> 17 consultants                 main_site     referenc…          0.95 name=stem;…
+#> 18 wards                       site_code     referenc…          1    name=exact…
+#> 19 wards                       tfc           referenc…          1    name=exact…
 ```
 
 ## Store, resume and report
@@ -201,5 +246,5 @@ out <- inventory_run(
 
 ``` r
 
-DBI::dbDisconnect(con)
+DBI::dbDisconnect(con, shutdown = TRUE)
 ```

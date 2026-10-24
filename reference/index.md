@@ -73,9 +73,3 @@ Artefact 2. Per-column statistics, semantic types and fingerprints.
   : Identify or construct a SQL dialect
 - [`type_class()`](https://thomuk.github.io/DBinventory/reference/type_class.md)
   : Classify a database type name
-
-## Synthetic test data
-
-- [`fakehosp_path()`](https://thomuk.github.io/DBinventory/reference/fakehosp_path.md)
-  [`fakehosp_connection()`](https://thomuk.github.io/DBinventory/reference/fakehosp_path.md)
-  : The bundled synthetic hospital database

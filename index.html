@@ -33,11 +33,12 @@
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="articles/DBinventory.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
-<li class="nav-item"><a class="nav-link" href="articles/example_report.html">Example Report</a></li>
+<li class="nav-item"><a class="nav-link" href="articles/example_report.html">Example Reports</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="articles/example_report.html">Example report</a></li>
+<li><a class="dropdown-item" href="articles/DBinventory.html">Getting started with DBinventory</a></li>
+    <li><a class="dropdown-item" href="articles/example_report.html">Example reports</a></li>
   </ul>
 </li>
       </ul>
@@ -74,7 +75,10 @@
 <span><span class="co"># optional, by source:</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"odbc"</span><span class="op">)</span>    <span class="co"># SQL Server and other ODBC sources</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"duckdb"</span><span class="op">)</span>  <span class="co"># Parquet files and DuckDB databases</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"DT"</span><span class="op">)</span>      <span class="co"># interactive tables in the report</span></span></code></pre></div>
+<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"DT"</span><span class="op">)</span>      <span class="co"># interactive tables in the report</span></span>
+<span></span>
+<span><span class="co"># the synthetic hospital dataset used in the articles and example reports</span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"ThomUK/synthetic-hospital-data"</span>, subdir <span class="op">=</span> <span class="st">"fakehospdata"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="usage">Usage<a class="anchor" aria-label="anchor" href="#usage"></a>
@@ -98,8 +102,9 @@
 <code class="sourceCode R"><span><span class="co"># a directory of Parquet files, one schema per subdirectory</span></span>
 <span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/inventory_run.html">inventory_run</a></span><span class="op">(</span><span class="st">"data/v2/sample"</span>, store <span class="op">=</span> <span class="st">"sample_inventory.sqlite"</span><span class="op">)</span></span>
 <span></span>
-<span><span class="co"># the bundled synthetic hospital database, for a first look</span></span>
-<span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/inventory_run.html">inventory_run</a></span><span class="op">(</span><span class="fu"><a href="reference/fakehosp_path.html">fakehosp_path</a></span><span class="op">(</span><span class="op">)</span>, store <span class="op">=</span> <span class="st">"fakehosp_inventory.sqlite"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="co"># the Fake NHS Trust synthetic dataset, for a first look (downloads the 130 MB sample once)</span></span>
+<span><span class="va">out</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/inventory_run.html">inventory_run</a></span><span class="op">(</span><span class="fu">fakehospdata</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/fakehospdata/man/fh_connect.html" class="external-link">fh_connect</a></span><span class="op">(</span><span class="st">"sample"</span><span class="op">)</span>, store <span class="op">=</span> <span class="st">"fakehosp_inventory.sqlite"</span>,</span>
+<span>                     organisation <span class="op">=</span> <span class="st">"Fake NHS Trust"</span><span class="op">)</span></span></code></pre></div>
 <p>Re-running with the same <code>store</code> resumes: tables already profiled are skipped. Use <code>resume = FALSE</code> to start again.</p>
 <div class="section level3">
 <h3 id="step-by-step">Step by step<a class="anchor" aria-label="anchor" href="#step-by-step"></a>
@@ -233,8 +238,8 @@
 <div class="section level2">
 <h2 id="development">Development<a class="anchor" aria-label="anchor" href="#development"></a>
 </h2>
-<p>The package is developed against <a href="https://github.com/ThomUK/synthetic-hospital-data" class="external-link">ThomUK/synthetic-hospital-data</a>. <code>inst/extdata/fakehosp.sqlite</code> is built from its sample by <code>data-raw/build_fixture.py</code> (45 tables and a view, capped at 1,000 rows, with declared types preserved) and used by the tests and examples.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="ex">python3</span> data-raw/build_fixture.py path/to/synthetic-hospital-data/data/v2/sample inst/extdata/fakehosp.sqlite 1000</span>
+<p>The package is developed against <a href="https://github.com/ThomUK/synthetic-hospital-data" class="external-link">ThomUK/synthetic-hospital-data</a>, read through its <code>fakehospdata</code> package. The tests run offline on <code>tests/testthat/fixtures/fakehosp_tiny.sqlite</code>, 45 tables and a view capped at 200 rows with declared types preserved, built from the sample by the script beside it. The articles and the example reports on the site use the real sample and full sets; the example reports are regenerated by the <code>example-reports</code> workflow on the Actions tab.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="ex">python3</span> tests/testthat/fixtures/build_fixture.py path/to/synthetic-hospital-data/data/v2/sample tests/testthat/fixtures/fakehosp_tiny.sqlite 200</span>
 <span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'devtools::test()'</span></span>
 <span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'rcmdcheck::rcmdcheck()'</span></span></code></pre></div>
 </div>

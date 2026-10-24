@@ -35,21 +35,10 @@ A tibble with one row per column: `table_schema`, `table_name`,
 ## Examples
 
 ``` r
-con <- fakehosp_connection()
+if (FALSE) { # \dontrun{
+con <- fakehospdata::fh_connect("sample")
 cols <- db_columns(con, db_tables(con, include = "pas_patients"))
 cols[, c("column_name", "data_type", "type_class")]
-#> # A tibble: 10 × 3
-#>    column_name         data_type type_class
-#>    <chr>               <chr>     <chr>     
-#>  1 mrn                 TEXT      string    
-#>  2 nhs_number          TEXT      string    
-#>  3 nhs_number_status   TEXT      string    
-#>  4 sex                 TEXT      string    
-#>  5 dob                 DATE      date      
-#>  6 ethnicity           TEXT      string    
-#>  7 gp_practice         TEXT      string    
-#>  8 postcode            TEXT      string    
-#>  9 registered_datetime TIMESTAMP datetime  
-#> 10 date_of_death       DATE      date      
-DBI::dbDisconnect(con)
+DBI::dbDisconnect(con, shutdown = TRUE)
+} # }
 ```

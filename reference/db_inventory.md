@@ -70,18 +70,10 @@ table or view, with `n_columns`, `row_count`, `size_bytes`,
 ## Examples
 
 ``` r
-con <- fakehosp_connection()
+if (FALSE) { # \dontrun{
+con <- fakehospdata::fh_connect("sample")
 inv <- db_inventory(con, include = "pas_", progress = FALSE)
-#> ℹ 5 tables found (sqlite dialect)
-#> ✔ Inventory of 5 tables and 65 columns in 0s
 inv$tables[, c("table_name", "n_columns", "row_count", "newest_datetime")]
-#> # A tibble: 5 × 4
-#>   table_name                  n_columns row_count newest_datetime    
-#>   <chr>                           <int>     <dbl> <chr>              
-#> 1 pas_adt_events                     20      1000 2026-03-31 10:22:32
-#> 2 pas_op_status_log                   8      1000 2026-03-30 17:58:28
-#> 3 pas_outpatient_appointments        16      1000 2026-03-31 14:40:00
-#> 4 pas_patients                       10      1000 2026-02-06         
-#> 5 pas_referrals                      11      1000 2026-03-30         
-DBI::dbDisconnect(con)
+DBI::dbDisconnect(con, shutdown = TRUE)
+} # }
 ```

@@ -5,12 +5,12 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Example report • DBinventory</title>
+<title>Example reports • DBinventory</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Example report">
+<script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Example reports">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -31,11 +31,12 @@
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../articles/DBinventory.html">Get started</a></li>
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="active nav-item"><a class="nav-link" href="../articles/example_report.html">Example Report</a></li>
+<li class="active nav-item"><a class="nav-link" href="../articles/example_report.html">Example Reports</a></li>
 <li class="nav-item dropdown">
   <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="../articles/example_report.html">Example report</a></li>
+<li><a class="dropdown-item" href="../articles/DBinventory.html">Getting started with DBinventory</a></li>
+    <li><a class="dropdown-item" href="../articles/example_report.html">Example reports</a></li>
   </ul>
 </li>
       </ul>
@@ -57,7 +58,7 @@
 <div class="row">
   <main id="main" class="col-md-9"><div class="page-header">
 
-      <h1>Example report</h1>
+      <h1>Example reports</h1>
             
       
       <small class="dont-index">Source: <a href="https://github.com/ThomUK/DBinventory/blob/main/vignettes/articles/example_report.Rmd" class="external-link"><code>vignettes/articles/example_report.Rmd</code></a></small>
@@ -66,27 +67,23 @@
 
     
     
-<p>This is the report <code><a href="../reference/render_report.html">render_report()</a></code> produces, run against
-the synthetic hospital database bundled with the package: 46 tables and
-523 columns from a fictional NHS trust, capped at 1,000 rows per table.
-It is regenerated every time the site is built, so it always reflects
-the current package.</p>
-<p>The report shows headline counts, the table inventory ranked by size
-and freshness, the type and semantic-type mix, null and uniqueness
-distributions, candidate duplicate columns, the full searchable column
-profile and the run log. Identifier, free-text and personal-data columns
-have their literal values suppressed, which is the default.</p>
-<p>
-<a href="../example-report.html" target="_blank" rel="noopener">Open the
-report in its own window</a>
-</p>
-<iframe src="../example-report.html" title="Example DBinventory report" style="width: 100%; height: 85vh; border: 1px solid #dee2e6; border-radius: 4px;" loading="lazy">
-</iframe>
+<p>Two reports from <code><a href="../reference/render_report.html">render_report()</a></code>, both run against the
+<a href="https://github.com/ThomUK/synthetic-hospital-data" class="external-link">Fake NHS
+Trust synthetic dataset</a> read through its <code>fakehospdata</code>
+package: one with the default sampling, where tables above a row
+threshold are profiled on a sample, and one with sampling switched off,
+which profiles every row of every table. The second is the slower and
+more detailed of the two; comparing them shows what sampling costs in
+detail and saves in time. They are regenerated by the
+<code>example-reports</code> workflow on the repository’s Actions tab,
+run by hand.</p>
+<p>The reports have not been generated yet. Run the
+<code>example-reports</code> workflow from the Actions tab.</p>
 <p>To make one for your own database:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/ThomUK/DBinventory" class="external-link">DBinventory</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/inventory_run.html">inventory_run</a></span><span class="op">(</span><span class="st">"Driver={ODBC Driver 18 for SQL Server};Server=...;Database=...;Trusted_Connection=yes;"</span>,</span>
-<span>              store <span class="op">=</span> <span class="st">"dw_inventory.sqlite"</span>, report <span class="op">=</span> <span class="st">"dw_inventory.html"</span><span class="op">)</span></span></code></pre></div>
+<span>              organisation <span class="op">=</span> <span class="st">"Your NHS Trust"</span>, store <span class="op">=</span> <span class="st">"dw_inventory.sqlite"</span>, report <span class="op">=</span> <span class="st">"dw_inventory.html"</span><span class="op">)</span></span></code></pre></div>
   </main>
 </div>
 

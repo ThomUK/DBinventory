@@ -96,15 +96,11 @@ as a site code legitimately matches several.
 ## Examples
 
 ``` r
-con <- fakehosp_connection()
+if (FALSE) { # \dontrun{
+con <- fakehospdata::fh_connect("sample")
 inv <- db_inventory(con, include = c("pas_patients$", "pas_adt_events$"), progress = FALSE)
-#> ℹ 2 tables found (sqlite dialect)
-#> ✔ Inventory of 2 tables and 30 columns in 0s
 prof <- db_profile(con, inv, progress = FALSE)
 prof[prof$fk_candidate, c("table_name", "column_name", "fk_target", "fk_confidence")]
-#> # A tibble: 1 × 4
-#>   table_name     column_name fk_target             fk_confidence
-#>   <chr>          <chr>       <chr>                         <dbl>
-#> 1 pas_adt_events mrn         main.pas_patients.mrn           0.8
-DBI::dbDisconnect(con)
+DBI::dbDisconnect(con, shutdown = TRUE)
+} # }
 ```
