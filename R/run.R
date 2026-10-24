@@ -16,6 +16,7 @@
 #' @param report If given, the path of an HTML report to render, see
 #'   [render_report()].
 #' @param resume Skip tables already profiled in `store`? Default `TRUE`.
+#' @param sizes Read table sizes from system views? Default `TRUE`.
 #' @param disconnect Disconnect a connection this function opened? Default
 #'   `TRUE`; a connection passed in is never closed.
 #' @inheritParams db_inventory

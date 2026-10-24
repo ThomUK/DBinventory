@@ -63,6 +63,8 @@ suggest personal data, are suppressed and only their hashes kept. Set
 
 \item{resume}{Skip tables already profiled in \code{store}? Default \code{TRUE}.}
 
+\item{sizes}{Read table sizes from system views? Default \code{TRUE}.}
+
 \item{dialect}{Optional dialect override, see \code{\link[=db_dialect]{db_dialect()}}.}
 
 \item{progress}{Show progress bars? Default \code{TRUE} in interactive use.}

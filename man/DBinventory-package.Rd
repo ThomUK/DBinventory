@@ -12,6 +12,7 @@ Builds the first two artefacts of a data-documentation effort from a read-only c
 Useful links:
 \itemize{
   \item \url{https://github.com/ThomUK/DBinventory}
+  \item \url{https://thomuk.github.io/DBinventory/}
   \item Report bugs at \url{https://github.com/ThomUK/DBinventory/issues}
 }
 
