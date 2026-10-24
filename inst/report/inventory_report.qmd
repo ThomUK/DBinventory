@@ -32,6 +32,10 @@ store_close(st)
 if (is.null(profile)) profile <- DBinventory:::empty_profile()
 if (is.null(log)) log <- data.frame(status = character())
 has_dt <- requireNamespace("DT", quietly = TRUE)
+library(ggplot2)
+theme_set(theme_minimal(base_size = 12) + theme(panel.grid.minor = element_blank(), axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)))
+fill_blue <- "#4C78A8"
+fill_orange <- "#F58518"
 show <- function(x, ...) {
   if (has_dt) DT::datatable(x, rownames = FALSE, filter = "top", extensions = "Buttons",
                             options = list(pageLength = 15, scrollX = TRUE, dom = "Bfrtip", buttons = c("csv", "copy")), ...)
@@ -78,18 +82,15 @@ d <- if (nrow(fresh) > 0) as.Date(substr(fresh$newest_datetime, 1, 10)) else as.
 d <- d[!is.na(d)]
 if (length(d) > 0) {
   month_start <- function(x) as.Date(format(x, "%Y-%m-01"))
-  first <- month_start(min(d))
-  last <- month_start(max(d))
-  edges <- seq(first, by = "month", length.out = length(seq(first, last, by = "month")) + 1)
-  n_months <- length(edges) - 1
-  step <- max(1, ceiling(n_months / 12))          # at most about twelve labels
-  ticks <- edges[seq(1, length(edges), by = step)]
-  op <- par(mar = c(7, 4, 1, 1))
-  hist(d, breaks = edges, freq = TRUE, right = FALSE, main = "", xaxt = "n",
-       xlab = "", ylab = "Tables", col = "#4C78A8", border = "white")
-  axis.Date(1, at = ticks, format = "%d %b %Y", las = 2, cex.axis = 0.8)
-  title(xlab = "Month of newest datetime in table", line = 5.5)
-  par(op)
+  months <- seq(month_start(min(d)), month_start(max(d)), by = "month")
+  counts <- data.frame(month = months, tables = as.integer(table(factor(month_start(d), levels = as.character(months)))))
+  step <- max(1, ceiling(length(months) / 12))        # at most about twelve labels
+  ggplot(counts, aes(x = month, y = tables)) +
+    geom_col(fill = fill_blue, width = 28) +
+    scale_x_date(breaks = months[seq(1, length(months), by = step)], date_labels = "%d %b %Y",
+                 expand = expansion(add = 15)) +
+    scale_y_continuous(breaks = function(l) unique(floor(pretty(l)))) +
+    labs(x = "Month of newest datetime in table", y = "Tables")
 } else cat("No datetime columns found, so no freshness to show.")
 ```
 
@@ -103,14 +104,11 @@ if (length(rc) > 0) {
   lo <- floor(log10(min(rc)))
   hi <- ceiling(log10(max(rc)))
   if (hi == lo) hi <- lo + 1
-  edges <- seq(lo, hi, by = 0.25)                 # four bins per power of ten
-  powers <- seq(lo, hi)
-  op <- par(mar = c(7, 4, 1, 1))
-  hist(log10(rc), breaks = edges, main = "", xaxt = "n", xlab = "",
-       ylab = "Tables", col = "#4C78A8", border = "white")
-  axis(1, at = powers, labels = format(10^powers, big.mark = ",", scientific = FALSE, trim = TRUE), las = 2, cex.axis = 0.8)
-  title(xlab = "Rows in table", line = 5.5)
-  par(op)
+  ggplot(data.frame(rows = rc), aes(x = rows)) +
+    geom_histogram(breaks = 10^seq(lo, hi, by = 0.25), fill = fill_blue, colour = "white") +
+    scale_x_log10(breaks = 10^seq(lo, hi), labels = scales::label_comma()) +
+    scale_y_continuous(breaks = function(l) unique(floor(pretty(l)))) +
+    labs(x = "Rows in table", y = "Tables")
 }
 ```
 
@@ -142,10 +140,19 @@ if (nrow(profile) > 0) {
 
 ```{r nulls, fig.height=4}
 if (nrow(profile) > 0) {
-  op <- par(mfrow = c(1, 2), mar = c(4, 4, 2, 1))
-  hist(profile$null_rate[!is.na(profile$null_rate)], breaks = 20, main = "Null rate per column", xlab = "Null rate", col = "#4C78A8", border = "white")
-  hist(profile$distinct_rate[!is.na(profile$distinct_rate)], breaks = 20, main = "Distinct rate per column", xlab = "Distinct / non-null", col = "#F58518", border = "white")
-  par(op)
+  rates <- rbind(
+    data.frame(measure = "Null rate", rate = profile$null_rate),
+    data.frame(measure = "Distinct rate (distinct / non-null)", rate = profile$distinct_rate)
+  )
+  rates <- rates[!is.na(rates$rate), ]
+  rates$measure <- factor(rates$measure, levels = c("Null rate", "Distinct rate (distinct / non-null)"))
+  ggplot(rates, aes(x = rate, fill = measure)) +
+    geom_histogram(breaks = seq(0, 1, by = 0.05), colour = "white", show.legend = FALSE) +
+    facet_wrap(~ measure, scales = "free_y") +
+    scale_fill_manual(values = c(fill_blue, fill_orange)) +
+    scale_x_continuous(breaks = seq(0, 1, by = 0.25), labels = scales::label_percent()) +
+    labs(x = NULL, y = "Columns") +
+    theme(axis.text.x = element_text(angle = 0, hjust = 0.5))
 }
 ```
 

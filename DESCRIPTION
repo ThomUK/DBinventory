@@ -32,11 +32,13 @@ Suggests:
     arrow,
     DT,
     duckdb,
+    ggplot2,
     knitr,
     odbc,
     quarto,
     rmarkdown,
     RSQLite,
+    scales,
     testthat (>= 3.0.0),
     withr
 Config/testthat/edition: 3

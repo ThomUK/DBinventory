@@ -26,6 +26,9 @@ render_report <- function(store, output_file = "db_inventory_report.html",
                           engine = c("auto", "quarto", "rmarkdown"),
                           title = "Database inventory and column profile", quiet = TRUE) {
   engine <- match.arg(engine)
+  for (pkg in c("ggplot2", "scales")) {
+    if (!has_pkg(pkg)) rlang::abort(paste0("render_report() needs the ", pkg, " package: install.packages('", pkg, "')"))
+  }
   store <- normalizePath(store, mustWork = TRUE)
   template <- system.file("report", "inventory_report.qmd", package = "DBinventory", mustWork = TRUE)
   output_file <- normalizePath(output_file, mustWork = FALSE)
