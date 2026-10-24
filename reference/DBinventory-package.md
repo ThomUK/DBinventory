@@ -17,6 +17,8 @@ Useful links:
 
 - <https://github.com/ThomUK/DBinventory>
 
+- <https://thomuk.github.io/DBinventory/>
+
 - Report bugs at <https://github.com/ThomUK/DBinventory/issues>
 
 ## Author

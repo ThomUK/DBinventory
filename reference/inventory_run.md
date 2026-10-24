@@ -97,6 +97,10 @@ inventory_run(
 
   Skip tables already profiled in `store`? Default `TRUE`.
 
+- sizes:
+
+  Read table sizes from system views? Default `TRUE`.
+
 - dialect:
 
   Optional dialect override, see
@@ -124,7 +128,7 @@ out <- inventory_run(fakehosp_path(), store = tempfile(fileext = ".sqlite"),
                      include = "pas_patients", progress = FALSE)
 #> ℹ 1 table found (sqlite dialect)
 #> ✔ Inventory of 1 table and 10 columns in 0s
-#> ✔ Run complete in 0.1s: 10 column profiles in /tmp/RtmpbTvPmc/file1b4e1153721.sqlite
+#> ✔ Run complete in 0.2s: 10 column profiles in /tmp/RtmpDACLLj/file1b064b2ecc21.sqlite
 out$profile[, c("column_name", "semantic_type", "null_rate")]
 #> # A tibble: 10 × 3
 #>    column_name         semantic_type null_rate
