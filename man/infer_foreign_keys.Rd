@@ -4,7 +4,7 @@
 \alias{infer_foreign_keys}
 \title{Propose foreign key relationships from the column profile}
 \usage{
-infer_foreign_keys(profile, min_confidence = 0.5)
+infer_foreign_keys(profile, min_confidence = 0.6)
 }
 \arguments{
 \item{profile}{A \code{column_profile} from \code{\link[=db_profile]{db_profile()}}, ideally covering
@@ -16,37 +16,68 @@ cannot be proposed.}
 \value{
 \code{profile} with \code{fk_candidate} (logical), \code{fk_target}
 (\code{schema.table.column} of the best key, or \code{NA}), \code{fk_confidence},
-\code{fk_evidence} (the scoring components as text) and \code{fk_n_targets} (how
-many keys scored at or above \code{min_confidence}; a conformed code such as a
-site code legitimately matches several) added or replaced.
+\code{fk_evidence} (the scoring components as text) and \code{fk_n_targets} added
+or replaced.
 }
 \description{
 Tier-one inference, from profile statistics alone and without extra
 queries. Every column of a string, integer or uuid type is scored against
 every \code{pk_candidate} column in another table (or another column of the same
-table), and the best-scoring target above \code{min_confidence} is recorded.
-Confirming a candidate with a value match-rate query is the key register's
-job, later; this is the shortlist for it.
+table), and the best-scoring target at or above \code{min_confidence} is
+recorded. These are candidates only: a shortlist for the key register's
+match-rate tests, which are the only thing that can confirm a relationship.
 }
-\details{
-A pair is ruled out when the types differ, the child's string lengths fall
-outside the key's, or the two columns share a \code{value_fingerprint} (a copy,
-not a reference). Surviving pairs score:
+\section{Exclusions}{
+
+A pair is ruled out, whatever else it scores, when:
 \itemize{
-\item name evidence: 0.5 for the same normalised name, 0.35 when the child name
-ends with the key name (\code{prior_mrn} to \code{mrn}), 0.2 when it contains the
-key's table stem (\code{ward_name} to \code{wards.ward_id});
-\item range: 0.25 when both ranges are known and the child's min and max lie
-inside the key's, -0.25 when they do not; nothing when either side's
-values are suppressed or the key table was sampled;
-\item cardinality: 0.15 for a many-to-one shape (the child has no more distinct
-values than the key and is not itself unique), 0.05 for one-to-one;
-skipped when either table was sampled;
-\item 0.1 for passing the type and length checks at all.
+\item the type classes differ, or the child's string lengths fall outside the
+key's;
+\item the child is itself unique and shares the key's \code{value_fingerprint}: that
+is a copy of the key, which belongs in the duplicate map;
+\item the key's complete value set is known (its distinct count is within the
+values recorded for it) and a top value of the child is not in it;
+\item the key's table was profiled in full and the child has more distinct
+values than the key;
+\item the shapes of the two columns' top values (runs of digits, letters and
+other characters) do not overlap, so \code{100} cannot reference \verb{Ward 3};
+\item the child is a flag, or is empty;
+\item the key is in the child's own table and the names do not say it is a
+self-reference (exact or suffix match);
+\item the child is itself a \code{pk_candidate} and there is no name evidence: a key
+that merely resembles another key is a coincidence or a copy.
+}
 }
 
-Scores are capped at 1. Ties go to the key with more distinct values.
+\section{Scoring}{
+
+Surviving pairs start at 0.1 and add:
+\itemize{
+\item name evidence: 0.45 for the same normalised name, 0.3 when the child name
+ends with the key name (\code{prior_mrn} to \code{mrn}), 0.2 when it contains the
+key's table stem (\code{main_site} to \code{sites.site_code}). Generic column names
+such as \code{id}, \code{code}, \code{name} or \code{description} earn nothing on their own;
+their keys are reached through the table stem;
+\item values: when the key's complete value set is known and every top value of
+the child is in it, 0.4 times the share of the key's values the child
+uses, so a child that uses all of a code list scores more than one that
+uses two of its seven codes;
+\item range: when the value set is not known but both ranges are, 0.25 if the
+child's min and max lie inside the key's and -0.25 if they do not;
+\item cardinality, when the key's table was profiled in full: 0.15 for a
+many-to-one shape, 0.05 for one-to-one unless the child is itself a
+\code{pk_candidate};
+\item 0.1 when both columns have the same minimum and maximum string length,
+unless the child is itself a \code{pk_candidate}.
 }
+
+Scores are capped at 1. Ties go to the key with the fewest distinct values
+when membership is known (the tightest fit) and the most when it is not (a
+table rather than a view of it), then by name. \code{fk_n_targets} counts how many keys
+reached the threshold, since a conformed code such as a site code
+legitimately matches several.
+}
+
 \examples{
 con <- fakehosp_connection()
 inv <- db_inventory(con, include = c("pas_patients$", "pas_adt_events$"), progress = FALSE)

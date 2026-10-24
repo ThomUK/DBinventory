@@ -13,6 +13,10 @@
 #' @param sample_rows Tables with more rows than this are profiled on a
 #'   sample of roughly this many rows. `Inf` disables sampling.
 #' @param top_n How many most-frequent values to record per column.
+#' @param full_set_max Columns with at most this many distinct values have
+#'   every value recorded, not just the top `top_n`, so that a code list's
+#'   frequency table is complete and foreign key membership can be tested
+#'   against it.
 #' @param top_values_max_distinct Only compute top values for columns with at
 #'   most this many distinct values; beyond that a frequency table says little.
 #' @param keep_values If `FALSE` (the default) the literal min, max and top
@@ -47,7 +51,7 @@
 #' DBI::dbDisconnect(con)
 #' @export
 db_profile <- function(con, inventory = NULL, tables = NULL, sample_rows = 1e6, top_n = 10,
-                       top_values_max_distinct = 10000, keep_values = FALSE,
+                       full_set_max = 50, top_values_max_distinct = 10000, keep_values = FALSE,
                        store = NULL, resume = TRUE, column_batch = 40,
                        dialect = NULL, progress = interactive()) {
   d <- db_dialect(con, dialect)
@@ -77,7 +81,7 @@ db_profile <- function(con, inventory = NULL, tables = NULL, sample_rows = 1e6, 
     cols <- columns[columns$table_schema == tab$table_schema & columns$table_name == tab$table_name, , drop = FALSE]
     started <- Sys.time()
     res <- tryCatch(
-      profile_table(con, d, tab, cols, sample_rows, top_n, top_values_max_distinct, keep_values, column_batch),
+      profile_table(con, d, tab, cols, sample_rows, top_n, full_set_max, top_values_max_distinct, keep_values, column_batch),
       error = function(e) e
     )
     if (inherits(res, "error")) {
@@ -101,7 +105,7 @@ db_profile <- function(con, inventory = NULL, tables = NULL, sample_rows = 1e6, 
 
 #' Profile one table
 #' @noRd
-profile_table <- function(con, d, tab, cols, sample_rows, top_n, top_values_max_distinct, keep_values, column_batch) {
+profile_table <- function(con, d, tab, cols, sample_rows, top_n, full_set_max, top_values_max_distinct, keep_values, column_batch) {
   if (nrow(cols) == 0) rlang::abort("no columns listed for this object; it may be inaccessible or a broken view")
   ref <- sql_table_ref(d, tab$table_schema, tab$table_name)
   row_count <- as_num(tab$row_count %||% NA_real_)
@@ -165,8 +169,9 @@ profile_table <- function(con, d, tab, cols, sample_rows, top_n, top_values_max_
     !is.na(out$distinct_count) & out$distinct_count > 0 & out$distinct_count <= top_values_max_distinct
   top <- vector("list", nrow(cols))
   for (j in which(eligible)) {
+    n_values <- if (out$distinct_count[j] <= full_set_max) max(top_n, out$distinct_count[j]) else top_n
     top[[j]] <- tryCatch(
-      top_values(con, d, src, cols$qname[j], cols$type_class[j], top_n),
+      top_values(con, d, src, cols$qname[j], cols$type_class[j], n_values),
       error = function(e) NULL
     )
   }

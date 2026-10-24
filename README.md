@@ -94,6 +94,19 @@ DBI::dbDisconnect(con)
 | `value_fingerprint`, `column_fingerprint` | Hash of what the column holds (type, distinct magnitude, min, max, top values), with and without the normalised column name |
 | `values_suppressed` | Whether literal values were withheld (see below) |
 
+### Key candidates
+
+`pk_candidate` marks columns that are unique, never null and of a key-like
+type. `fk_candidate` and `fk_target` propose, for each column, the key column
+in another table it most looks like a reference to, from name evidence,
+membership in a small key's complete value set, range containment,
+cardinality shape and value shape, with `fk_confidence` from 0 to 1 and
+`fk_evidence` spelling out the components. Both are **candidates only**: the
+profile cannot see whether a child's values actually exist in the key, so the
+shortlist is confirmed or rejected by match-rate tests in the key register
+stage. The exclusions and the scoring are documented in
+`?infer_foreign_keys`.
+
 ## Design decisions
 
 These are the choices made where the brief left room; all are easy to change.

@@ -32,7 +32,7 @@
 inventory_run <- function(source, store = "db_inventory.sqlite", export_dir = NULL,
                           export_format = c("csv", "parquet"), report = NULL,
                           schema = NULL, include = NULL, exclude = NULL, views = TRUE,
-                          sample_rows = 1e6, top_n = 10, top_values_max_distinct = 10000,
+                          sample_rows = 1e6, top_n = 10, full_set_max = 50, top_values_max_distinct = 10000,
                           keep_values = FALSE, resume = TRUE, sizes = TRUE,
                           dialect = NULL, progress = interactive(), disconnect = TRUE) {
   export_format <- match.arg(export_format)
@@ -59,7 +59,7 @@ inventory_run <- function(source, store = "db_inventory.sqlite", export_dir = NU
   }
   store_close(st)
 
-  db_profile(con, inventory, sample_rows = sample_rows, top_n = top_n,
+  db_profile(con, inventory, sample_rows = sample_rows, top_n = top_n, full_set_max = full_set_max,
              top_values_max_distinct = top_values_max_distinct, keep_values = keep_values,
              store = store, resume = resume, dialect = d, progress = progress)
 
