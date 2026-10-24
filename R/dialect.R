@@ -291,10 +291,23 @@ sql_sample_select.db_dialect_mssql <- function(d, ref, n, row_count, is_view = F
 }
 #' @export
 sql_sample_select.db_dialect_duckdb <- function(d, ref, n, row_count, is_view = FALSE) {
-  list(
-    sql = paste0("SELECT * FROM ", ref, " USING SAMPLE reservoir(", format(n, scientific = FALSE), " ROWS) REPEATABLE (42)"),
-    method = "reservoir"
-  )
+  # System sampling takes whole vectors and costs about as much as reading the
+  # sampled fraction; reservoir sampling scans everything and then writes the
+  # sample, which on Parquet costs more than profiling the full table.
+  # Vectors hold about 2,048 rows, so percentage sampling is only meaningful
+  # on tables with many of them; small tables take an exact reservoir sample.
+  if (!is.na(row_count) && row_count >= 1e5 && n < row_count) {
+    pct <- 100 * n / row_count
+    list(
+      sql = paste0("SELECT * FROM ", ref, " USING SAMPLE ", format(pct, digits = 6), " PERCENT (system, 42)"),
+      method = "system_percent"
+    )
+  } else {
+    list(
+      sql = paste0("SELECT * FROM ", ref, " USING SAMPLE reservoir(", format(n, scientific = FALSE), " ROWS) REPEATABLE (42)"),
+      method = "reservoir"
+    )
+  }
 }
 #' @export
 sql_sample_select.db_dialect_sqlite <- function(d, ref, n, row_count, is_view = FALSE) {

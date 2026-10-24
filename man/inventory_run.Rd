@@ -55,7 +55,10 @@ any \code{include} pattern and no \code{exclude} pattern.}
 \item{views}{Keep views as well as base tables? Default \code{TRUE}.}
 
 \item{sample_rows}{Tables with more rows than this are profiled on a
-sample of roughly this many rows. \code{Inf} disables sampling.}
+sample of roughly this many rows. \code{Inf} disables sampling, which is the
+faster choice on DuckDB and Parquet, where aggregates over the full table
+cost less than materialising a sample; the threshold is for engines such
+as SQL Server where a full scan is the expensive part.}
 
 \item{top_n}{How many most-frequent values to record per column.}
 

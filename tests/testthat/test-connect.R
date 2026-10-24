@@ -54,7 +54,7 @@ test_that("parquet_connect exposes views DuckDB can profile", {
   prof <- db_profile(con, inv, sample_rows = 20, progress = FALSE)
   codes <- prof[prof$table_name == "codes", ]
   expect_true(all(codes$sampled))
-  expect_equal(unique(codes$sample_method), "reservoir")
+  expect_equal(unique(codes$sample_method), "reservoir")   # too small for vector sampling
   expect_equal(codes$distinct_count[codes$column_name == "code"], 3)
   expect_equal(codes$semantic_type[codes$column_name == "code"], "code")
   full <- db_profile(con, inv, progress = FALSE)

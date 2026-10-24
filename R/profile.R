@@ -11,7 +11,10 @@
 #'   built first (row counts are needed to decide on sampling).
 #' @param tables Optional subset of `inventory$tables` to profile.
 #' @param sample_rows Tables with more rows than this are profiled on a
-#'   sample of roughly this many rows. `Inf` disables sampling.
+#'   sample of roughly this many rows. `Inf` disables sampling, which is the
+#'   faster choice on DuckDB and Parquet, where aggregates over the full table
+#'   cost less than materialising a sample; the threshold is for engines such
+#'   as SQL Server where a full scan is the expensive part.
 #' @param top_n How many most-frequent values to record per column.
 #' @param full_set_max Columns with at most this many distinct values have
 #'   every value recorded, not just the top `top_n`, so that a code list's

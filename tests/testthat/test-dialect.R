@@ -48,7 +48,9 @@ test_that("SQL Server SQL uses T-SQL forms", {
 test_that("other dialects use LIMIT and their own sampling", {
   dk <- db_dialect(dialect = "duckdb")
   expect_equal(DBinventory:::sql_select(dk, "a", "t", n = 10), "SELECT a FROM t LIMIT 10")
-  expect_match(DBinventory:::sql_sample_select(dk, "t", 500, 1e6)$sql, "USING SAMPLE reservoir\\(500 ROWS\\)")
+  expect_match(DBinventory:::sql_sample_select(dk, "t", 500, 1e6)$sql, "USING SAMPLE 0.05 PERCENT \\(system, 42\\)")
+  expect_match(DBinventory:::sql_sample_select(dk, "t", 500, NA)$sql, "USING SAMPLE reservoir\\(500 ROWS\\)")
+  expect_match(DBinventory:::sql_sample_select(dk, "t", 20, 50)$sql, "USING SAMPLE reservoir\\(20 ROWS\\)")
   sq <- db_dialect(dialect = "sqlite")
   expect_match(DBinventory:::sql_sample_select(sq, "t", 500, 1e6)$sql, "ORDER BY random\\(\\) LIMIT 500")
   expect_null(DBinventory:::sql_list_columns(sq))

@@ -127,10 +127,14 @@ securely.
 **Large tables are sampled.** Exact `COUNT(*)` and `MAX(datetime)` always run
 on the full table; value statistics for tables above `sample_rows` (default a
 million) are computed on a sample materialised in a session temporary table
-(`TABLESAMPLE SYSTEM` on SQL Server, `USING SAMPLE reservoir` on DuckDB,
+(`TABLESAMPLE SYSTEM` on SQL Server, `USING SAMPLE ... (system)` on DuckDB,
 `ORDER BY random()` on SQLite, `TABLESAMPLE SYSTEM (pct)` on PostgreSQL; views
 on SQL Server fall back to the first rows). `sampled` and `sample_method`
-record what happened. `sample_rows = Inf` disables it.
+record what happened. `sample_rows = Inf` disables it. Sampling exists for
+SQL Server, where a full scan of a large table is slow; on DuckDB over
+Parquet the aggregates are fast enough that an unsampled run is usually
+quicker than materialising samples (on the 60-million-row synthetic trust,
+17 seconds unsampled against 65 sampled), so set `sample_rows = Inf` there.
 
 **One query per table for the aggregates, one per eligible column for top
 values.** Aggregates are batched `column_batch` columns at a time. Top values

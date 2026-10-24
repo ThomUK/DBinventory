@@ -29,7 +29,10 @@ built first (row counts are needed to decide on sampling).}
 \item{tables}{Optional subset of \code{inventory$tables} to profile.}
 
 \item{sample_rows}{Tables with more rows than this are profiled on a
-sample of roughly this many rows. \code{Inf} disables sampling.}
+sample of roughly this many rows. \code{Inf} disables sampling, which is the
+faster choice on DuckDB and Parquet, where aggregates over the full table
+cost less than materialising a sample; the threshold is for engines such
+as SQL Server where a full scan is the expensive part.}
 
 \item{top_n}{How many most-frequent values to record per column.}
 
