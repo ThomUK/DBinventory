@@ -99,7 +99,7 @@ if (length(d) > 0) {
 
 ### Row counts
 
-Bins are log-spaced so that reference tables and multi-million-row logs both show; each bar covers the row counts between the two boundaries it sits on.
+Bins are log-spaced so that reference tables and multi-million-row logs both show; each bar covers the row counts between the two boundaries it sits on. Bars are not equal widths because 1 to 2 and 5 to 10 each double, while 2 to 5 is a factor of 2.5.
 
 ```{r rows, fig.height=4}
 rc <- tables$row_count[!is.na(tables$row_count) & tables$row_count > 0]
@@ -177,8 +177,13 @@ Columns in different tables with the same value fingerprint (type, distinct-coun
 
 ```{r dupes}
 if (nrow(profile) > 0) {
-  dup <- duplicate_candidates(profile)
-  if (nrow(dup) > 0) show(as.data.frame(dup)) else cat("No cross-table fingerprint matches.")
+  dup <- as.data.frame(duplicate_candidates(profile))
+  if (nrow(dup) > 0) {
+    dup$columns <- vapply(strsplit(dup$columns, "; ", fixed = TRUE), function(cols) {
+      paste(if (has_dt) htmltools::htmlEscape(cols) else cols, collapse = if (has_dt) "<br>" else "; ")
+    }, character(1))
+    show(dup, escape = setdiff(seq_along(dup), which(names(dup) == "columns")))
+  } else cat("No cross-table fingerprint matches.")
 }
 ```
 
