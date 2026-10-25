@@ -24,3 +24,8 @@
   Reports" page embeds the HTML in `pkgdown/assets/`, which is committed and
   regenerated only by the manual `example-reports` workflow (Actions tab);
   the site build does not render reports.
+- Explain concepts with small inline SVG diagrams (micro-visualisations)
+  wherever a picture shows the mechanism better than prose: the shapes of
+  the cluster labels and the phase flow in the roadmap are the model. Keep
+  them simple, hand-drawn SVG with no extra dependencies, and keep the prose
+  beside them short.
