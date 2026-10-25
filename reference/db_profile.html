@@ -15,7 +15,7 @@ so that an interrupted run resumes where it stopped."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">DBinventory</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.9</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -159,7 +159,11 @@ store by <code><a href="inventory_run.html">inventory_run()</a></code>, and only
 them <code>NA</code>),
 <code>min_value</code>, <code>max_value</code>, <code>mean_value</code>, <code>min_length</code>, <code>max_length</code>,
 <code>mean_length</code>, <code>true_count</code>, <code>top_values</code> (JSON), <code>top_values_hash</code>,
-<code>semantic_type</code>, <code>values_suppressed</code>, <code>value_fingerprint</code>,
+<code>semantic_type</code>, <code>values_suppressed</code>, <code>suppression_reason</code> (<code>personal_data</code>,
+<code>free_text</code> or <code>identifier</code> where values are suppressed, else <code>NA</code>),
+<code>top_values_omitted</code> (why a column has no frequency table: <code>suppressed</code>,
+<code>unsupported type</code>, <code>no values</code>, <code>too many distinct values</code> or
+<code>query failed</code>; <code>NA</code> where it has one), <code>value_fingerprint</code>,
 <code>column_fingerprint</code>, <code>rows_profiled</code>, <code>sampled</code>, <code>sample_method</code>,
 <code>profiled_at</code>.</p>
     </div>

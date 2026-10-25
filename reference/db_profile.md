@@ -112,8 +112,13 @@ store by
 and only on a full run: a sampled run leaves them `NA`), `min_value`,
 `max_value`, `mean_value`, `min_length`, `max_length`, `mean_length`,
 `true_count`, `top_values` (JSON), `top_values_hash`, `semantic_type`,
-`values_suppressed`, `value_fingerprint`, `column_fingerprint`,
-`rows_profiled`, `sampled`, `sample_method`, `profiled_at`.
+`values_suppressed`, `suppression_reason` (`personal_data`, `free_text`
+or `identifier` where values are suppressed, else `NA`),
+`top_values_omitted` (why a column has no frequency table: `suppressed`,
+`unsupported type`, `no values`, `too many distinct values` or
+`query failed`; `NA` where it has one), `value_fingerprint`,
+`column_fingerprint`, `rows_profiled`, `sampled`, `sample_method`,
+`profiled_at`.
 
 ## Examples
 

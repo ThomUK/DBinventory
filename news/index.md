@@ -1,5 +1,15 @@
 # Changelog
 
+## DBinventory 0.1.9
+
+- Profile: `suppression_reason` records why a column’s values were
+  suppressed (`personal_data`, `free_text` or `identifier`) and
+  `top_values_omitted` why a column has no frequency table.
+- Report: the column profile no longer leaves min, max and top values
+  blank; each empty cell says why (for example “not listed (free text)”
+  or “not listed (potentially confidential)”), and a missing mean shows
+  as a dash.
+
 ## DBinventory 0.1.8
 
 - Report: the key-candidate diagram lays its columns out at fixed

@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">DBinventory</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.8</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.9</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,6 +40,11 @@
       <small>Source: <a href="https://github.com/ThomUK/DBinventory/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.1.9" id="dbinventory-019">DBinventory 0.1.9<a class="anchor" aria-label="anchor" href="#dbinventory-019"></a></h2>
+<ul><li>Profile: <code>suppression_reason</code> records why a column’s values were suppressed (<code>personal_data</code>, <code>free_text</code> or <code>identifier</code>) and <code>top_values_omitted</code> why a column has no frequency table.</li>
+<li>Report: the column profile no longer leaves min, max and top values blank; each empty cell says why (for example “not listed (free text)” or “not listed (potentially confidential)”), and a missing mean shows as a dash.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.8" id="dbinventory-018">DBinventory 0.1.8<a class="anchor" aria-label="anchor" href="#dbinventory-018"></a></h2>
 <ul><li>Report: the key-candidate diagram lays its columns out at fixed positions, so they no longer collapse together.</li>
