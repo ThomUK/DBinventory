@@ -1,11 +1,11 @@
 # Roadmap: from an inherited database to control and value
 
-You have inherited a large database: several schemas, hundreds of
-tables, tens of thousands of columns, no documentation, and reports that
-disagree. This is the order of work from there to a database that is
-under control and useful to the business. Each phase answers one
-question and produces a small number of things; each has a gate that the
-next phase depends on.
+When starting work with a new database, several schemas, hundreds of
+tables, tens of thousands of columns, no documentation, and signs that
+key business metrics do not agree, where do you start? This article is a
+proposed set of next steps. Each phase answers one question and produces
+a small number of things; each has a gate that the next phase depends
+on.
 
 ## The six phases
 
