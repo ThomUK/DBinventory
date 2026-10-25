@@ -1,5 +1,10 @@
 # Changelog
 
+## DBinventory 0.1.8
+
+- Report: the key-candidate diagram lays its columns out at fixed
+  positions, so they no longer collapse together.
+
 ## DBinventory 0.1.7
 
 - Report: a diagram explains freshness (the newest date a table holds,
