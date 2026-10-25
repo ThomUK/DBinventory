@@ -1,3 +1,7 @@
+# DBinventory 0.1.4
+
+* The report's phase 2 tab opens with diagrams of how tables are matched, what counts as the same data, and what the labels mean.
+
 # DBinventory 0.1.3
 
 * Phase 2, table clustering: `cluster_tables()` matches columns across tables

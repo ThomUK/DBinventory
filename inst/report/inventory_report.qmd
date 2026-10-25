@@ -245,13 +245,123 @@ if (nrow(profile) > 0) {
 if (!full_run) sampled_note("Table clustering")
 ```
 
-```{r phase2, results="asis", eval=full_run}
-cat("Tables that hold the same data, grouped, with a proposed canonical member for each group. Columns are matched across tables by what they hold (complete value sets for code lists, value ranges, distinct rate, value shape, string lengths, and name as a secondary signal); a pair of tables is related when most of one table's information is found in the other **and** they share a column that is near-unique in both, so that a table which merely references another through a foreign key is not mistaken for a copy. Each related table is labelled a *copy*, *filtered subset*, *wider derivative*, *narrower* version or *aggregate* of the canonical member, which is proposed as the lowest-grain, widest, freshest table with a key. **These are proposals** for the warehouse owners to confirm or reject in the review file (`decisions` in `inventory_run()`); confirmed decisions override the proposals on later runs. Full detail: `?cluster_tables`.\n\n")
+```{r phase2-intro, results="asis", eval=full_run}
+cat('
+Which tables hold the same data? This tab groups them and proposes, for each group, the one table to keep and document (the **canonical** member). It works in five steps, from the column profile alone.
+
+<svg viewBox="0 0 960 150" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:960px;font-family:sans-serif">
+  <defs><marker id="p2arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#555"/></marker></defs>
+  <g font-size="12" fill="#222">
+    <rect x="5" y="20" width="170" height="70" rx="8" fill="#dbe7f3" stroke="#1f4e79"/>
+    <text x="90" y="42" text-anchor="middle" font-weight="bold">1. Match columns</text>
+    <text x="90" y="60" text-anchor="middle">by what they hold:</text>
+    <text x="90" y="76" text-anchor="middle">values, ranges, shapes</text>
+    <rect x="200" y="20" width="170" height="70" rx="8" fill="#dbe7f3" stroke="#1f4e79"/>
+    <text x="285" y="42" text-anchor="middle" font-weight="bold">2. Score table pairs</text>
+    <text x="285" y="60" text-anchor="middle">how much of A is in B,</text>
+    <text x="285" y="76" text-anchor="middle">and of B in A</text>
+    <rect x="395" y="20" width="170" height="70" rx="8" fill="#dbe7f3" stroke="#1f4e79"/>
+    <text x="480" y="42" text-anchor="middle" font-weight="bold">3. Label the pair</text>
+    <text x="480" y="60" text-anchor="middle">copy, subset, wider,</text>
+    <text x="480" y="76" text-anchor="middle">narrower, aggregate</text>
+    <rect x="590" y="20" width="170" height="70" rx="8" fill="#dbe7f3" stroke="#1f4e79"/>
+    <text x="675" y="42" text-anchor="middle" font-weight="bold">4. Group and choose</text>
+    <text x="675" y="60" text-anchor="middle">related tables form a group;</text>
+    <text x="675" y="76" text-anchor="middle">one is proposed as canonical</text>
+    <rect x="785" y="20" width="170" height="70" rx="8" fill="#fbe5c8" stroke="#b36b00"/>
+    <text x="870" y="42" text-anchor="middle" font-weight="bold">5. Owners review</text>
+    <text x="870" y="60" text-anchor="middle">confirm or reject each</text>
+    <text x="870" y="76" text-anchor="middle">proposal in the review file</text>
+    <g stroke="#555" stroke-width="2" marker-end="url(#p2arrow)">
+      <line x1="175" y1="55" x2="198" y2="55"/><line x1="370" y1="55" x2="393" y2="55"/>
+      <line x1="565" y1="55" x2="588" y2="55"/><line x1="760" y1="55" x2="783" y2="55"/>
+    </g>
+    <text x="480" y="125" text-anchor="middle" fill="#444">Code does steps 1 to 4 and writes the proposals; people do step 5. Nothing is marked canonical without review.</text>
+  </g>
+</svg>
+
+#### What counts as the same data
+
+Two tables are related when most of one table\'s information is found in the other **and** they share a column that is near-unique in both: the same identifier for the same things. Sharing a code column is not enough, otherwise every table that references the site list would look like a copy of it.
+
+<svg viewBox="0 0 960 250" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:960px;font-family:sans-serif">
+  <g font-size="12" fill="#222">
+    <!-- left: a copy -->
+    <text x="235" y="22" text-anchor="middle" font-weight="bold" fill="#1f4e79">Related: the same rows, mostly the same columns</text>
+    <rect x="40" y="40" width="150" height="150" rx="6" fill="#dbe7f3" stroke="#1f4e79"/>
+    <text x="115" y="58" text-anchor="middle" font-weight="bold">Table A</text>
+    <text x="55" y="82">spell_id  (unique)</text>
+    <text x="55" y="104">patient</text>
+    <text x="55" y="126">admitted</text>
+    <text x="55" y="148">specialty</text>
+    <text x="55" y="170">ward</text>
+    <rect x="280" y="40" width="150" height="150" rx="6" fill="#dbe7f3" stroke="#1f4e79"/>
+    <text x="355" y="58" text-anchor="middle" font-weight="bold">Table B</text>
+    <text x="295" y="82">spell_id  (unique)</text>
+    <text x="295" y="104">patient</text>
+    <text x="295" y="126">admitted_at</text>
+    <text x="295" y="148">specialty</text>
+    <text x="295" y="170">length_of_stay</text>
+    <g stroke="#1f4e79" stroke-width="2"><line x1="190" y1="78" x2="280" y2="78"/><line x1="190" y1="100" x2="280" y2="100"/><line x1="190" y1="122" x2="280" y2="122"/><line x1="190" y1="144" x2="280" y2="144"/></g>
+    <text x="235" y="70" text-anchor="middle" font-size="11" fill="#1f4e79">shared key</text>
+    <text x="235" y="215" text-anchor="middle">4 of 5 columns match, key shared: <tspan font-weight="bold">related</tspan></text>
+    <!-- right: a reference -->
+    <text x="725" y="22" text-anchor="middle" font-weight="bold" fill="#b36b00">Not related: one table only refers to the other</text>
+    <rect x="530" y="40" width="150" height="150" rx="6" fill="#eeeeee" stroke="#777"/>
+    <text x="605" y="58" text-anchor="middle" font-weight="bold">Sites</text>
+    <text x="545" y="82">site_code  (unique)</text>
+    <text x="545" y="104">site_name</text>
+    <rect x="770" y="40" width="150" height="150" rx="6" fill="#dbe7f3" stroke="#1f4e79"/>
+    <text x="845" y="58" text-anchor="middle" font-weight="bold">Admissions</text>
+    <text x="785" y="82">spell_id  (unique)</text>
+    <text x="785" y="104">patient</text>
+    <text x="785" y="126">site_code  (2 values)</text>
+    <text x="785" y="148">admitted</text>
+    <line x1="680" y1="78" x2="770" y2="122" stroke="#b36b00" stroke-width="2" stroke-dasharray="5 4"/>
+    <text x="725" y="215" text-anchor="middle">site_code matches, but it is unique only in Sites: <tspan font-weight="bold">a reference, not a copy</tspan></text>
+  </g>
+</svg>
+
+#### The labels
+
+Each related table is labelled by its shape relative to the canonical member of its group.
+
+<svg viewBox="0 0 960 190" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:960px;font-family:sans-serif">
+  <g font-size="12" fill="#222">
+    <!-- canonical -->
+    <rect x="20" y="40" width="120" height="100" rx="4" fill="#fbe5c8" stroke="#b36b00"/>
+    <text x="80" y="30" text-anchor="middle" font-weight="bold">canonical</text>
+    <text x="80" y="160" text-anchor="middle" font-size="11">all rows, all columns</text>
+    <!-- copy -->
+    <rect x="200" y="40" width="120" height="100" rx="4" fill="#dbe7f3" stroke="#1f4e79"/>
+    <text x="260" y="30" text-anchor="middle" font-weight="bold">copy</text>
+    <text x="260" y="160" text-anchor="middle" font-size="11">same rows, same columns</text>
+    <!-- filtered subset -->
+    <rect x="380" y="80" width="120" height="60" rx="4" fill="#dbe7f3" stroke="#1f4e79"/>
+    <rect x="380" y="40" width="120" height="100" rx="4" fill="none" stroke="#999" stroke-dasharray="3 3"/>
+    <text x="440" y="30" text-anchor="middle" font-weight="bold">filtered subset</text>
+    <text x="440" y="160" text-anchor="middle" font-size="11">fewer rows, same columns</text>
+    <!-- wider derivative -->
+    <rect x="560" y="40" width="160" height="100" rx="4" fill="#dbe7f3" stroke="#1f4e79"/>
+    <rect x="560" y="40" width="120" height="100" rx="4" fill="none" stroke="#999" stroke-dasharray="3 3"/>
+    <text x="640" y="30" text-anchor="middle" font-weight="bold">wider derivative</text>
+    <text x="640" y="160" text-anchor="middle" font-size="11">same rows, extra columns</text>
+    <!-- aggregate -->
+    <rect x="780" y="110" width="80" height="30" rx="4" fill="#dbe7f3" stroke="#1f4e79"/>
+    <rect x="780" y="40" width="120" height="100" rx="4" fill="none" stroke="#999" stroke-dasharray="3 3"/>
+    <text x="840" y="30" text-anchor="middle" font-weight="bold">aggregate</text>
+    <text x="840" y="160" text-anchor="middle" font-size="11">few rows: counts by period or code</text>
+  </g>
+</svg>
+
+The canonical member is proposed as the table with the lowest grain (most rows), the most columns, the newest data and a key, and a *narrower* table is the other side of a wider derivative. **These are proposals**: the warehouse owners confirm or reject each one in the review file (`decisions` in `inventory_run()`), and confirmed decisions override the proposals on later runs. Full detail of the scoring: `?cluster_tables`.
+
+')
 if (is.null(clusters) || nrow(clusters) == 0) {
   cat("No clusters were computed.\n\n")
 } else {
   n_multi <- sum(table(clusters$cluster_id) > 1)
-  cat(sprintf("**%d** groups of related tables among **%d** tables; **%d** tables stand alone. Table classes from their own shape: %s.\n\n",
+  cat(sprintf("#### Proposed groups\n\n**%d** groups of related tables among **%d** tables; **%d** tables stand alone. Table classes from their own shape: %s.\n\n",
       n_multi, nrow(clusters), sum(!clusters$cluster_id %in% clusters$cluster_id[duplicated(clusters$cluster_id)]),
       paste(sprintf("%d %s", table(clusters$table_class), names(table(clusters$table_class))), collapse = ", ")))
 }
