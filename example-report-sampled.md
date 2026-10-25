@@ -12,9 +12,9 @@ box matches any column. The CSV button downloads what is currently
 shown.
 
 **45** tables and views, **518** columns, **54,368,976** rows in total.
-Profiled 518 columns in 45 tables in 21 seconds.
+Profiled 518 columns in 45 tables in 41 seconds.
 
-Last run started 2026-10-25 10:55:18 UTC against `duckdb_connection`
+Last run started 2026-10-25 10:58:54 UTC against `duckdb_connection`
 (duckdb dialect), sampling tables above 1,000,000 rows, top 10 values
 per column, literal values suppressed for identifiers, free text and
 personal-data names.
@@ -93,14 +93,17 @@ sample only. `top_values` lists the most frequent values with their
 counts; blank where values are suppressed or the column has too many
 distinct values for a frequency table to be useful.
 
-**Not computed: this report comes from a sampled run.** 7 of 45 tables
-were profiled on a sample of their rows. Table clustering needs exact
-statistics, so it is only produced by a full run: re-run with
-`sample_rows = Inf`.
+**Phase 1 was completed on a sampled database check**, where not every
+row was reviewed for the largest tables (7 of 45 tables were sampled).
+Phase 1 is complete and can be used as it is. Table clustering needs
+every row to be reviewed, so it is not shown here. To see phase 2
+onwards, complete a full (not sampled) database check: run
+`inventory_run()` again with `sample_rows = Inf`, which profiles every
+row of every table, then render this report from that run.
 
 ### Candidate duplicate columns
 
-Not computed on a sampled run.
+Shown after a full (not sampled) database check.
 
 Groups of columns in different tables whose contents look the same: same
 type class, same order of magnitude of distinct values, same minimum and
@@ -111,10 +114,13 @@ columns matching under different names are the ones worth checking
 first. It is a starting point for the duplicate map, not a verdict:
 value-overlap tests confirm or reject it in the next stage.
 
-**Not computed: this report comes from a sampled run.** 7 of 45 tables
-were profiled on a sample of their rows. Key inference needs exact
-statistics, so it is only produced by a full run: re-run with
-`sample_rows = Inf`.
+**Phase 1 was completed on a sampled database check**, where not every
+row was reviewed for the largest tables (7 of 45 tables were sampled).
+Phase 1 is complete and can be used as it is. Key inference needs every
+row to be reviewed, so it is not shown here. To see phase 2 onwards,
+complete a full (not sampled) database check: run `inventory_run()`
+again with `sample_rows = Inf`, which profiles every row of every table,
+then render this report from that run.
 
 ### Primary key candidates
 

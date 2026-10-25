@@ -12,9 +12,9 @@ box matches any column. The CSV button downloads what is currently
 shown.
 
 **45** tables and views, **518** columns, **54,368,976** rows in total.
-Profiled 518 columns in 45 tables in 23 seconds.
+Profiled 518 columns in 45 tables in 52 seconds.
 
-Last run started 2026-10-25 10:55:48 UTC against `duckdb_connection`
+Last run started 2026-10-25 10:59:53 UTC against `duckdb_connection`
 (duckdb dialect), sampling tables above Inf rows, top 10 values per
 column, literal values suppressed for identifiers, free text and
 personal-data names.
