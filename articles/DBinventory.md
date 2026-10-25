@@ -32,7 +32,7 @@ passes through.
 
 con <- db_connect(fakehospdata::fh_connect("sample", quiet = TRUE))
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpI2jVrA/duckdb
+#> ℹ /tmp/RtmpjyPpOc/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -114,6 +114,7 @@ threshold is set low so the audit logs are sampled.
 ``` r
 
 prof <- db_profile(con, inv, sample_rows = 2e5, progress = FALSE)
+#> ℹ Sampled run: foreign key inference needs exact statistics and was skipped (use sample_rows = Inf)
 table(prof$sampled)
 #> 
 #> FALSE  TRUE 
@@ -178,6 +179,7 @@ inv2 <- db_inventory(con, include = c("layer1\\.pas_outpatient_appointments", "d
 #> ℹ 16 tables found (duckdb dialect)
 #> ✔ Inventory of 16 tables and 107 columns in 0.1s
 prof2 <- db_profile(con, inv2, sample_rows = 2e5, progress = FALSE)
+#> ℹ Sampled run: foreign key inference needs exact statistics and was skipped (use sample_rows = Inf)
 duplicate_candidates(prof2)[, c("n_tables", "columns")]
 #> # A tibble: 10 × 2
 #>    n_tables columns                                                             
@@ -205,28 +207,20 @@ not a confirmed relationship.
 ``` r
 
 prof2[prof2$fk_candidate, c("table_name", "column_name", "fk_target", "fk_confidence", "fk_evidence")]
-#> # A tibble: 19 × 5
-#>    table_name                  column_name   fk_target fk_confidence fk_evidence
-#>    <chr>                       <chr>         <chr>             <dbl> <chr>      
-#>  1 op_appointments             sitetret      referenc…          0.95 name=stem;…
-#>  2 op_appointments             clinic_code   referenc…          0.8  name=exact…
-#>  3 op_appointments             tretspef      referenc…          0.71 name=none;…
-#>  4 op_appointments             consultant_c… referenc…          0.8  name=exact…
-#>  5 op_appointments             attended      referenc…          0.75 name=none;…
-#>  6 pas_outpatient_appointments site_code     referenc…          1    name=exact…
-#>  7 pas_outpatient_appointments clinic_code   referenc…          0.8  name=exact…
-#>  8 pas_outpatient_appointments specialty_co… referenc…          0.91 name=stem;…
-#>  9 pas_outpatient_appointments consultant_c… referenc…          0.8  name=exact…
-#> 10 pas_outpatient_appointments attendance_s… referenc…          0.95 name=stem;…
-#> 11 beds                        site_code     referenc…          1    name=exact…
-#> 12 beds                        ward_id       referenc…          1    name=exact…
-#> 13 beds                        ward_name     referenc…          1    name=exact…
-#> 14 clinics                     site_code     referenc…          1    name=exact…
-#> 15 clinics                     tfc           referenc…          1    name=exact…
-#> 16 consultants                 tfc           referenc…          1    name=exact…
-#> 17 consultants                 main_site     referenc…          0.95 name=stem;…
-#> 18 wards                       site_code     referenc…          1    name=exact…
-#> 19 wards                       tfc           referenc…          1    name=exact…
+#> # A tibble: 107 × 5
+#>    table_name column_name fk_target fk_confidence fk_evidence
+#>    <chr>      <chr>       <chr>             <dbl> <chr>      
+#>  1 NA         NA          NA                   NA NA         
+#>  2 NA         NA          NA                   NA NA         
+#>  3 NA         NA          NA                   NA NA         
+#>  4 NA         NA          NA                   NA NA         
+#>  5 NA         NA          NA                   NA NA         
+#>  6 NA         NA          NA                   NA NA         
+#>  7 NA         NA          NA                   NA NA         
+#>  8 NA         NA          NA                   NA NA         
+#>  9 NA         NA          NA                   NA NA         
+#> 10 NA         NA          NA                   NA NA         
+#> # ℹ 97 more rows
 ```
 
 ## Store, resume and report

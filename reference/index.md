@@ -41,12 +41,23 @@ Artefact 2. Per-column statistics, semantic types and fingerprints.
   : Read the top values of a profile row back into a data frame
 - [`infer_semantic_type()`](https://thomuk.github.io/DBinventory/reference/infer_semantic_type.md)
   : Infer a semantic type for each profiled column
-- [`infer_foreign_keys()`](https://thomuk.github.io/DBinventory/reference/infer_foreign_keys.md)
-  : Propose foreign key relationships from the column profile
 - [`fingerprints()`](https://thomuk.github.io/DBinventory/reference/fingerprints.md)
   : Fingerprint profiled columns
 - [`duplicate_candidates()`](https://thomuk.github.io/DBinventory/reference/duplicate_candidates.md)
   : Find columns that share a fingerprint across tables
+
+## Table clusters and keys
+
+Artefacts 3 and 8, proposed from the profile on a full run.
+
+- [`cluster_tables()`](https://thomuk.github.io/DBinventory/reference/cluster_tables.md)
+  : Cluster tables that hold the same data and propose a canonical
+  member
+- [`write_cluster_decisions()`](https://thomuk.github.io/DBinventory/reference/write_cluster_decisions.md)
+  [`read_cluster_decisions()`](https://thomuk.github.io/DBinventory/reference/write_cluster_decisions.md)
+  : Write and read the cluster review file
+- [`infer_foreign_keys()`](https://thomuk.github.io/DBinventory/reference/infer_foreign_keys.md)
+  : Propose foreign key relationships from the column profile
 
 ## Store, export and report
 

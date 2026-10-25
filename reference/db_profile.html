@@ -15,7 +15,7 @@ so that an interrupted run resumes where it stopped."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">DBinventory</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -155,7 +155,8 @@ include <code>null_rate</code>, <code>distinct_count</code>, <code>distinct_rate
 on a sampled table this is evidence from the sample only), <code>fk_candidate</code>,
 <code>fk_target</code>, <code>fk_confidence</code> and <code>fk_evidence</code> (see <code><a href="infer_foreign_keys.html">infer_foreign_keys()</a></code>;
 inferred across the tables profiled in this call, or across the whole
-store by <code><a href="inventory_run.html">inventory_run()</a></code>),
+store by <code><a href="inventory_run.html">inventory_run()</a></code>, and only on a full run: a sampled run leaves
+them <code>NA</code>),
 <code>min_value</code>, <code>max_value</code>, <code>mean_value</code>, <code>min_length</code>, <code>max_length</code>,
 <code>mean_length</code>, <code>true_count</code>, <code>top_values</code> (JSON), <code>top_values_hash</code>,
 <code>semantic_type</code>, <code>values_suppressed</code>, <code>value_fingerprint</code>,

@@ -15,7 +15,7 @@ over."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">DBinventory</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -66,6 +66,8 @@ over.</p>
 <span>  export_format <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"csv"</span>, <span class="st">"parquet"</span><span class="op">)</span>,</span>
 <span>  report <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  organisation <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  schema_priority <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  decisions <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  schema <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  include <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  exclude <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -115,6 +117,17 @@ directory.</p></dd>
 <dd><p>Name of the trust or organisation the database belongs
 to. Recorded in the store's <code>run_meta</code> and used to prefix the report
 title.</p></dd>
+
+
+<dt id="arg-schema-priority">schema_priority<a class="anchor" aria-label="anchor" href="#arg-schema-priority"></a></dt>
+<dd><p>Optional schema order for choosing a cluster's
+canonical table, see <code><a href="cluster_tables.html">cluster_tables()</a></code>.</p></dd>
+
+
+<dt id="arg-decisions">decisions<a class="anchor" aria-label="anchor" href="#arg-decisions"></a></dt>
+<dd><p>Optional path to the cluster review CSV, see
+<code><a href="write_cluster_decisions.html">write_cluster_decisions()</a></code>: existing decisions in it are applied, and
+the file is rewritten with any new tables added as proposed.</p></dd>
 
 
 <dt id="arg-schema">schema<a class="anchor" aria-label="anchor" href="#arg-schema"></a></dt>
@@ -187,7 +200,18 @@ suggest personal data, are suppressed and only their hashes kept. Set
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>Invisibly, a list with <code>inventory</code> (a <code>db_inventory</code>), <code>profile</code>
 (a <code>column_profile</code>, the full contents of the store including earlier
-runs) and <code>store</code> (the store path).</p>
+runs), <code>clusters</code> (the result of <code><a href="cluster_tables.html">cluster_tables()</a></code>, or <code>NULL</code> on a
+sampled run) and <code>store</code> (the store path).</p>
+    </div>
+    <div class="section level2">
+    <h2 id="full-and-sampled-runs">Full and sampled runs<a class="anchor" aria-label="anchor" href="#full-and-sampled-runs"></a></h2>
+
+
+<p>Phase 1 (inventory and profile) runs either way. Phases 2 and 3, table
+clustering and foreign key inference, need exact statistics and run only
+when no table was sampled; on a sampled run they are skipped with a
+message and the report says so on their tabs. <code>sample_rows = Inf</code> gives a
+full run.</p>
     </div>
 
     <div class="section level2">

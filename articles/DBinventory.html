@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">DBinventory</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -95,7 +95,7 @@ cache and returns a DuckDB connection of views, which
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">con</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/db_connect.html">db_connect</a></span><span class="op">(</span><span class="fu">fakehospdata</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/fakehospdata/man/fh_connect.html" class="external-link">fh_connect</a></span><span class="op">(</span><span class="st">"sample"</span>, quiet <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; duckdb keeps downloaded extensions and secrets in a temporary directory:</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> /tmp/RtmpI2jVrA/duckdb</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> /tmp/RtmpjyPpOc/duckdb</span></span>
 <span><span class="co">#&gt; This is removed when the R session ends.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Extensions are re-downloaded each session.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Secrets are lost.</span></span>
@@ -166,6 +166,7 @@ temporary table; here that threshold is set low so the audit logs are
 sampled.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">prof</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/db_profile.html">db_profile</a></span><span class="op">(</span><span class="va">con</span>, <span class="va">inv</span>, sample_rows <span class="op">=</span> <span class="fl">2e5</span>, progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Sampled run: foreign key inference needs exact statistics and was skipped (use sample_rows = Inf)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/table.html" class="external-link">table</a></span><span class="op">(</span><span class="va">prof</span><span class="op">$</span><span class="va">sampled</span><span class="op">)</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; FALSE  TRUE </span></span>
@@ -222,6 +223,7 @@ column in other tables still match on fingerprint:</p>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> 16 tables found (duckdb dialect)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Inventory of 16 tables and 107 columns in 0.1s</span></span>
 <span><span class="va">prof2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/db_profile.html">db_profile</a></span><span class="op">(</span><span class="va">con</span>, <span class="va">inv2</span>, sample_rows <span class="op">=</span> <span class="fl">2e5</span>, progress <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Sampled run: foreign key inference needs exact statistics and was skipped (use sample_rows = Inf)</span></span>
 <span><span class="fu"><a href="../reference/duplicate_candidates.html">duplicate_candidates</a></span><span class="op">(</span><span class="va">prof2</span><span class="op">)</span><span class="op">[</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"n_tables"</span>, <span class="st">"columns"</span><span class="op">)</span><span class="op">]</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 10 × 2</span></span></span>
 <span><span class="co">#&gt;    n_tables columns                                                             </span></span>
@@ -247,28 +249,20 @@ becomes <code>fk_target</code>. It is a shortlist for the key register’s
 match-rate tests, not a confirmed relationship.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">prof2</span><span class="op">[</span><span class="va">prof2</span><span class="op">$</span><span class="va">fk_candidate</span>, <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"table_name"</span>, <span class="st">"column_name"</span>, <span class="st">"fk_target"</span>, <span class="st">"fk_confidence"</span>, <span class="st">"fk_evidence"</span><span class="op">)</span><span class="op">]</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 19 × 5</span></span></span>
-<span><span class="co">#&gt;    table_name                  column_name   fk_target fk_confidence fk_evidence</span></span>
-<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> op_appointments             sitetret      referenc…          0.95 name=stem;…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> op_appointments             clinic_code   referenc…          0.8  name=exact…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> op_appointments             tretspef      referenc…          0.71 name=none;…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> op_appointments             consultant_c… referenc…          0.8  name=exact…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> op_appointments             attended      referenc…          0.75 name=none;…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> pas_outpatient_appointments site_code     referenc…          1    name=exact…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> pas_outpatient_appointments clinic_code   referenc…          0.8  name=exact…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> pas_outpatient_appointments specialty_co… referenc…          0.91 name=stem;…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> pas_outpatient_appointments consultant_c… referenc…          0.8  name=exact…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> pas_outpatient_appointments attendance_s… referenc…          0.95 name=stem;…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">11</span> beds                        site_code     referenc…          1    name=exact…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">12</span> beds                        ward_id       referenc…          1    name=exact…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">13</span> beds                        ward_name     referenc…          1    name=exact…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">14</span> clinics                     site_code     referenc…          1    name=exact…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">15</span> clinics                     tfc           referenc…          1    name=exact…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">16</span> consultants                 tfc           referenc…          1    name=exact…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">17</span> consultants                 main_site     referenc…          0.95 name=stem;…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">18</span> wards                       site_code     referenc…          1    name=exact…</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">19</span> wards                       tfc           referenc…          1    name=exact…</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 107 × 5</span></span></span>
+<span><span class="co">#&gt;    table_name column_name fk_target fk_confidence fk_evidence</span></span>
+<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> <span style="color: #BB0000;">NA</span>         <span style="color: #BB0000;">NA</span>          <span style="color: #BB0000;">NA</span>                   <span style="color: #BB0000;">NA</span> <span style="color: #BB0000;">NA</span>         </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> <span style="color: #BB0000;">NA</span>         <span style="color: #BB0000;">NA</span>          <span style="color: #BB0000;">NA</span>                   <span style="color: #BB0000;">NA</span> <span style="color: #BB0000;">NA</span>         </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> <span style="color: #BB0000;">NA</span>         <span style="color: #BB0000;">NA</span>          <span style="color: #BB0000;">NA</span>                   <span style="color: #BB0000;">NA</span> <span style="color: #BB0000;">NA</span>         </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> <span style="color: #BB0000;">NA</span>         <span style="color: #BB0000;">NA</span>          <span style="color: #BB0000;">NA</span>                   <span style="color: #BB0000;">NA</span> <span style="color: #BB0000;">NA</span>         </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> <span style="color: #BB0000;">NA</span>         <span style="color: #BB0000;">NA</span>          <span style="color: #BB0000;">NA</span>                   <span style="color: #BB0000;">NA</span> <span style="color: #BB0000;">NA</span>         </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> <span style="color: #BB0000;">NA</span>         <span style="color: #BB0000;">NA</span>          <span style="color: #BB0000;">NA</span>                   <span style="color: #BB0000;">NA</span> <span style="color: #BB0000;">NA</span>         </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> <span style="color: #BB0000;">NA</span>         <span style="color: #BB0000;">NA</span>          <span style="color: #BB0000;">NA</span>                   <span style="color: #BB0000;">NA</span> <span style="color: #BB0000;">NA</span>         </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> <span style="color: #BB0000;">NA</span>         <span style="color: #BB0000;">NA</span>          <span style="color: #BB0000;">NA</span>                   <span style="color: #BB0000;">NA</span> <span style="color: #BB0000;">NA</span>         </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> <span style="color: #BB0000;">NA</span>         <span style="color: #BB0000;">NA</span>          <span style="color: #BB0000;">NA</span>                   <span style="color: #BB0000;">NA</span> <span style="color: #BB0000;">NA</span>         </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> <span style="color: #BB0000;">NA</span>         <span style="color: #BB0000;">NA</span>          <span style="color: #BB0000;">NA</span>                   <span style="color: #BB0000;">NA</span> <span style="color: #BB0000;">NA</span>         </span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 97 more rows</span></span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="store-resume-and-report">Store, resume and report<a class="anchor" aria-label="anchor" href="#store-resume-and-report"></a>

@@ -16,6 +16,8 @@ inventory_run(
   export_format = c("csv", "parquet"),
   report = NULL,
   organisation = NULL,
+  schema_priority = NULL,
+  decisions = NULL,
   schema = NULL,
   include = NULL,
   exclude = NULL,
@@ -64,6 +66,18 @@ inventory_run(
 
   Name of the trust or organisation the database belongs to. Recorded in
   the store's `run_meta` and used to prefix the report title.
+
+- schema_priority:
+
+  Optional schema order for choosing a cluster's canonical table, see
+  [`cluster_tables()`](https://thomuk.github.io/DBinventory/reference/cluster_tables.md).
+
+- decisions:
+
+  Optional path to the cluster review CSV, see
+  [`write_cluster_decisions()`](https://thomuk.github.io/DBinventory/reference/write_cluster_decisions.md):
+  existing decisions in it are applied, and the file is rewritten with
+  any new tables added as proposed.
 
 - schema:
 
@@ -134,8 +148,18 @@ inventory_run(
 ## Value
 
 Invisibly, a list with `inventory` (a `db_inventory`), `profile` (a
-`column_profile`, the full contents of the store including earlier runs)
-and `store` (the store path).
+`column_profile`, the full contents of the store including earlier
+runs), `clusters` (the result of
+[`cluster_tables()`](https://thomuk.github.io/DBinventory/reference/cluster_tables.md),
+or `NULL` on a sampled run) and `store` (the store path).
+
+## Full and sampled runs
+
+Phase 1 (inventory and profile) runs either way. Phases 2 and 3, table
+clustering and foreign key inference, need exact statistics and run only
+when no table was sampled; on a sampled run they are skipped with a
+message and the report says so on their tabs. `sample_rows = Inf` gives
+a full run.
 
 ## Examples
 

@@ -45,6 +45,12 @@ data.
 
 ### Phase 2: find the real tables
 
+Built as proposals:
+[`cluster_tables()`](https://thomuk.github.io/DBinventory/reference/cluster_tables.md)
+groups tables that hold the same data, proposes a canonical member for
+each group, classes every table, and writes a review file for the owners
+to confirm.
+
 | \# | Artefact | What it holds | Where it lives | Who writes it | Needs |
 |----|----|----|----|----|----|
 | 3 | **Duplicate and lineage map** | Groups of tables and columns that hold the same thing; for each group the canonical member, the others marked copy, aggregate, filtered subset or unknown | Same store, plus a short rationale per group | Code proposes, a person confirms | 2 |
@@ -112,10 +118,12 @@ set is known, tested and owned.
 
 ## Where we are
 
-- **Built**: phase 1 in full, and the candidate half of phase 3 (primary
-  and foreign key candidates with evidence and confidence).
-- **Next**: table clustering with a proposed canonical member (phase 2),
-  then confirming the keys with match-rate tests (phase 3), then
+- **Built**: phase 1 in full; phase 2’s proposals (table clusters with a
+  canonical member, a class for every table, and the review file the
+  owners confirm them in); and the candidate half of phase 3 (primary
+  and foreign key candidates with evidence and confidence). Phases 2 and
+  3 run only on a full, unsampled profile.
+- **Next**: confirming the keys with match-rate tests (phase 3), then
   dictionary drafts from the profile (phase 4).
 - **Not code**: the standard, the glossary, the metric register and
   stewardship are pages and agreements between teams. The package keeps

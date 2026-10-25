@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">DBinventory</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,6 +40,12 @@
       <small>Source: <a href="https://github.com/ThomUK/DBinventory/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.1.3" id="dbinventory-013">DBinventory 0.1.3<a class="anchor" aria-label="anchor" href="#dbinventory-013"></a></h2>
+<ul><li>Phase 2, table clustering: <code><a href="../reference/cluster_tables.html">cluster_tables()</a></code> matches columns across tables by what they hold, scores table pairs by containment, labels each related pair (copy, filtered subset, wider derivative, narrower, aggregate), groups related tables into clusters and proposes a canonical member with a rationale; every table also gets a class (event, reference, aggregate). <code><a href="../reference/write_cluster_decisions.html">write_cluster_decisions()</a></code> and <code><a href="../reference/write_cluster_decisions.html">read_cluster_decisions()</a></code> keep the owners’ review in a CSV that overrides the proposals on later runs. <code><a href="../reference/inventory_run.html">inventory_run()</a></code> gains <code>schema_priority</code> and <code>decisions</code>.</li>
+<li>Phases 2 and 3 are gated on a full run: on a sampled run, clustering and foreign key inference are skipped and the report says so.</li>
+<li>The report is tabbed by phase: inventory and profile, table clusters, keys.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.2" id="dbinventory-012">DBinventory 0.1.2<a class="anchor" aria-label="anchor" href="#dbinventory-012"></a></h2>
 <ul><li>Report tables offer dropdown filters for columns with few distinct values (schema, type class, semantic type, flags), a rows-per-page menu and highlighted search matches, all through DT.</li>

@@ -12,6 +12,7 @@
 <url><loc>https://thomuk.github.io/DBinventory/index.html</loc></url>
 <url><loc>https://thomuk.github.io/DBinventory/news/index.html</loc></url>
 <url><loc>https://thomuk.github.io/DBinventory/reference/DBinventory-package.html</loc></url>
+<url><loc>https://thomuk.github.io/DBinventory/reference/cluster_tables.html</loc></url>
 <url><loc>https://thomuk.github.io/DBinventory/reference/db_columns.html</loc></url>
 <url><loc>https://thomuk.github.io/DBinventory/reference/db_connect.html</loc></url>
 <url><loc>https://thomuk.github.io/DBinventory/reference/db_dialect.html</loc></url>
@@ -37,5 +38,6 @@
 <url><loc>https://thomuk.github.io/DBinventory/reference/store_write_inventory.html</loc></url>
 <url><loc>https://thomuk.github.io/DBinventory/reference/top_values_of.html</loc></url>
 <url><loc>https://thomuk.github.io/DBinventory/reference/type_class.html</loc></url>
+<url><loc>https://thomuk.github.io/DBinventory/reference/write_cluster_decisions.html</loc></url>
 </urlset>
 

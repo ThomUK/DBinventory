@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">DBinventory</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -178,6 +178,9 @@ data.</p>
 <div class="section level3">
 <h3 id="phase-2-find-the-real-tables">Phase 2: find the real tables<a class="anchor" aria-label="anchor" href="#phase-2-find-the-real-tables"></a>
 </h3>
+<p>Built as proposals: <code><a href="../reference/cluster_tables.html">cluster_tables()</a></code> groups tables that
+hold the same data, proposes a canonical member for each group, classes
+every table, and writes a review file for the owners to confirm.</p>
 <table style="width:100%;" class="table">
 <colgroup>
 <col width="16%">
@@ -423,13 +426,14 @@ settled by the register.</li>
 </h2>
 <ul>
 <li>
-<strong>Built</strong>: phase 1 in full, and the candidate half of
-phase 3 (primary and foreign key candidates with evidence and
-confidence).</li>
+<strong>Built</strong>: phase 1 in full; phase 2’s proposals (table
+clusters with a canonical member, a class for every table, and the
+review file the owners confirm them in); and the candidate half of phase
+3 (primary and foreign key candidates with evidence and confidence).
+Phases 2 and 3 run only on a full, unsampled profile.</li>
 <li>
-<strong>Next</strong>: table clustering with a proposed canonical
-member (phase 2), then confirming the keys with match-rate tests (phase
-3), then dictionary drafts from the profile (phase 4).</li>
+<strong>Next</strong>: confirming the keys with match-rate tests
+(phase 3), then dictionary drafts from the profile (phase 4).</li>
 <li>
 <strong>Not code</strong>: the standard, the glossary, the metric
 register and stewardship are pages and agreements between teams. The
