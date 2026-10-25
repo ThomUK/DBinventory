@@ -1,5 +1,10 @@
 # Changelog
 
+## DBinventory 0.1.5
+
+- The report’s sampled-run notes guide the reader: phase 1 is complete
+  and usable, and a full (not sampled) check shows phase 2 onwards.
+
 ## DBinventory 0.1.4
 
 - The report’s phase 2 tab opens with diagrams of how tables are
