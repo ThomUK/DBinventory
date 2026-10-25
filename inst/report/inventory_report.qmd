@@ -36,15 +36,32 @@ library(ggplot2)
 theme_set(theme_minimal(base_size = 12) + theme(panel.grid.minor = element_blank(), axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)))
 fill_blue <- "#4C78A8"
 fill_orange <- "#F58518"
+# Interactive tables: a filter box above every column (a dropdown for columns
+# with few distinct values, a text box otherwise, a range slider for numbers),
+# a global search, a rows-per-page menu and CSV/copy buttons. Columns with at
+# most `dropdown_max` distinct values become factors so DT offers a dropdown.
+dropdown_max <- 50
 show <- function(x, ...) {
-  if (has_dt) DT::datatable(x, rownames = FALSE, filter = "top", extensions = "Buttons",
-                            options = list(pageLength = 15, scrollX = TRUE, dom = "Bfrtip", buttons = c("csv", "copy")), ...)
-  else knitr::kable(utils::head(x, 200))
+  if (!has_dt) return(knitr::kable(utils::head(x, 200)))
+  for (nm in names(x)) {
+    v <- x[[nm]]
+    if (is.logical(v)) x[[nm]] <- factor(v, levels = c(TRUE, FALSE))
+    else if (is.character(v) && length(unique(v[!is.na(v)])) <= dropdown_max && !grepl("<br>", v[1], fixed = TRUE)) x[[nm]] <- factor(v)
+  }
+  DT::datatable(
+    x, rownames = FALSE, filter = "top", extensions = "Buttons",
+    options = list(
+      pageLength = 15, lengthMenu = list(c(15, 50, 100, -1), c("15", "50", "100", "All")),
+      scrollX = TRUE, dom = "Blfrtip", buttons = c("csv", "copy"), searchHighlight = TRUE
+    ), ...
+  )
 }
 fmt <- function(x) format(x, big.mark = ",", scientific = FALSE, trim = TRUE)
 bytes <- function(b) ifelse(is.na(b), "", ifelse(b >= 1e9, paste0(round(b / 1e9, 1), " GB"),
          ifelse(b >= 1e6, paste0(round(b / 1e6, 1), " MB"), paste0(round(b / 1e3), " kB"))))
 ```
+
+Every table below can be filtered: type in the box above a column, pick from its dropdown, or drag the slider under a number column; the search box matches any column. The CSV button downloads what is currently shown.
 
 ```{r headline, results="asis"}
 # latest attempt per table decides whether it failed

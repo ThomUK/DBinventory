@@ -1,3 +1,9 @@
+# DBinventory 0.1.2
+
+* Report tables offer dropdown filters for columns with few distinct values
+  (schema, type class, semantic type, flags), a rows-per-page menu and
+  highlighted search matches, all through DT.
+
 # DBinventory 0.1.1
 
 * DuckDB samples large tables (100,000 rows or more) with vector-level
