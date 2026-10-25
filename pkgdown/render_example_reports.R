@@ -18,7 +18,10 @@ run_one <- function(label, sample_rows) {
   on.exit(DBI::dbDisconnect(con, shutdown = TRUE), add = TRUE)
   store <- tempfile(paste0("fakehosp_", label, "_"), fileext = ".sqlite")
   started <- Sys.time()
-  out <- inventory_run(con, store = store, organisation = "Fake NHS Trust", sample_rows = sample_rows, progress = FALSE)
+  # The answers schema (mess log and truth tables) is the dataset's answer key,
+  # not something a real warehouse would hold, so it is left out of the inventory.
+  out <- inventory_run(con, store = store, organisation = "Fake NHS Trust", sample_rows = sample_rows,
+                       exclude = "^answers\\.", progress = FALSE)
   secs <- as.numeric(difftime(Sys.time(), started, units = "secs"))
   file <- file.path("pkgdown/assets", paste0("example-report-", label, ".html"))
   render_report(store, file, engine = "auto")
