@@ -1,5 +1,11 @@
 # Changelog
 
+## DBinventory 0.1.6
+
+- Report: a diagram of primary and foreign key candidates heads the
+  phase 3 tab, and the sampled-run note shows what a sampled check
+  reviewed against a full one.
+
 ## DBinventory 0.1.5
 
 - The report’s sampled-run notes guide the reader: phase 1 is complete
