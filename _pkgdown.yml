@@ -27,6 +27,7 @@ articles:
   contents:
   - articles/DBinventory
   - articles/example_report
+  - articles/roadmap
 
 reference:
 - title: Run everything

@@ -210,11 +210,9 @@ Rscript -e 'rcmdcheck::rcmdcheck()'
 
 ## Roadmap
 
-- First run against a live SQL Server warehouse; fix whatever the T-SQL gets wrong.
-- Artefact 3, the duplicate and lineage map: cluster tables by shared
-  fingerprints and propose a canonical member. `duplicate_candidates()` is the
-  seed.
-- Value sketches (MinHash or HyperLogLog) for overlap tests between candidate
-  key columns, feeding the key register.
-- Incremental re-profiling: only tables whose row count or newest datetime
-  changed since the last run.
+The sequence from an inherited, undocumented database to one that is under
+control and useful, which phases this package covers and what comes next, is
+set out in the [roadmap article](https://thomuk.github.io/DBinventory/articles/roadmap.html).
+In short: inventory and profile (built), collapse to the canonical set
+(next), keys and structure, documentation of the canonical set, control,
+then the semantic model.
