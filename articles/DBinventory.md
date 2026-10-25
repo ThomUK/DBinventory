@@ -32,7 +32,7 @@ passes through.
 
 con <- db_connect(fakehospdata::fh_connect("sample", quiet = TRUE))
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/Rtmp5gYa6X/duckdb
+#> ℹ /tmp/RtmpbvBK1T/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
@@ -62,7 +62,7 @@ expressions on `schema.table` narrow the scope.
 
 inv <- db_inventory(con, schema = c("layer1", "reference"), progress = FALSE)
 #> ℹ 23 tables found (duckdb dialect)
-#> ✔ Inventory of 23 tables and 207 columns in 0.2s
+#> ✔ Inventory of 23 tables and 207 columns in 0.3s
 inv$tables[, c("table_schema", "table_name", "n_columns", "row_count", "newest_datetime", "newest_datetime_column")]
 #> # A tibble: 23 × 6
 #>    table_schema table_name                  n_columns row_count newest_datetime 
