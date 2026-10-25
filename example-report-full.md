@@ -12,9 +12,9 @@ box matches any column. The CSV button downloads what is currently
 shown.
 
 **45** tables and views, **518** columns, **54,368,976** rows in total.
-Profiled 518 columns in 45 tables in 24 seconds.
+Profiled 518 columns in 45 tables in 14 seconds.
 
-Last run started 2026-10-25 12:14:04 UTC against `duckdb_connection`
+Last run started 2026-10-25 13:03:27 UTC against `duckdb_connection`
 (duckdb dialect), sampling tables above Inf rows, top 10 values per
 column, literal values suppressed for identifiers, free text and
 personal-data names.
@@ -97,8 +97,12 @@ candidates to drop from any dictionary.
 `pk_candidate` marks columns that are unique, never null and of a type
 keys are made of; where `sampled` is true that is evidence from the
 sample only. `top_values` lists the most frequent values with their
-counts; blank where values are suppressed or the column has too many
-distinct values for a frequency table to be useful.
+counts. Where a value is not shown, the cell says why: *potentially
+confidential* (the column name suggests personal data), *free text*,
+*identifier* (an identifier with too many distinct values to be a code
+list), *too many distinct values* for a frequency table to be useful,
+*all null*, or a type the profiler does not summarise. `mean_value` is
+computed for numbers only and shows a dash elsewhere.
 
 Which tables hold the same data? This tab groups them and proposes, for
 each group, the one table to keep and document (the **canonical**
