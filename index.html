@@ -39,6 +39,7 @@
   <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
 <li><a class="dropdown-item" href="articles/DBinventory.html">Getting started with DBinventory</a></li>
     <li><a class="dropdown-item" href="articles/example_report.html">Example reports</a></li>
+    <li><a class="dropdown-item" href="articles/roadmap.html">Roadmap: from an inherited database to control and value</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="news/index.html">Changelog</a></li>
@@ -253,12 +254,7 @@
 <div class="section level2">
 <h2 id="roadmap">Roadmap<a class="anchor" aria-label="anchor" href="#roadmap"></a>
 </h2>
-<ul>
-<li>First run against a live SQL Server warehouse; fix whatever the T-SQL gets wrong.</li>
-<li>Artefact 3, the duplicate and lineage map: cluster tables by shared fingerprints and propose a canonical member. <code><a href="reference/duplicate_candidates.html">duplicate_candidates()</a></code> is the seed.</li>
-<li>Value sketches (MinHash or HyperLogLog) for overlap tests between candidate key columns, feeding the key register.</li>
-<li>Incremental re-profiling: only tables whose row count or newest datetime changed since the last run.</li>
-</ul>
+<p>The sequence from an inherited, undocumented database to one that is under control and useful, which phases this package covers and what comes next, is set out in the <a href="https://thomuk.github.io/DBinventory/articles/roadmap.html">roadmap article</a>. In short: inventory and profile (built), collapse to the canonical set (next), keys and structure, documentation of the canonical set, control, then the semantic model.</p>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">

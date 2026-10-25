@@ -1,0 +1,169 @@
+# Roadmap: from an inherited database to control and value
+
+You have inherited a large database: several schemas, hundreds of
+tables, tens of thousands of columns, no documentation, and reports that
+disagree with each other. This article sets out the order of work from
+there to a database that is under control and useful to the business,
+which stages DBinventory covers, and what each stage needs from people
+rather than code.
+
+It revises the original plan (“From 700 undocumented tables to the first
+semantic model”), which named eleven artefacts in five stages. The
+artefacts stand; what has changed is that the first two exist, the key
+work has started, and the sequence can now be stated as questions the
+business is asking, in the order they can be answered.
+
+## Three principles
+
+**Triage, do not document.** Most of the tables are copies of each other
+at different levels of aggregation. Documentation effort goes only to
+the small canonical set, once it is known. Nothing is described by hand
+at scale.
+
+**Generate, then review.** Profiles, duplicate clusters, candidate keys
+and first-draft descriptions can all be produced by code. A person
+reviews before anything carries a “reviewed” flag; nothing is asserted
+on the strength of a heuristic alone.
+
+**Record provenance, not rival definitions.** Where a metric has several
+definitions in use, the register records each as observed (where, by
+whom, what it computes, when). Making disagreement visible and
+attributable is what people are asking for when they ask for numbers
+that agree.
+
+## The sequence
+
+Each phase shrinks the problem for the next: profiling shows which
+tables are copies, deduplication shows which deserve documentation,
+documentation states grain and keys, and the key register is what a
+semantic model is built from.
+
+| Phase | Question it answers | Artefacts (original numbering) | Done by | Gate to the next phase |
+|----|----|----|----|----|
+| 0\. Access and safety | Can we look without risk? | Read-only account; a home for outputs that holds no patient data | Code (built: value suppression is the default) | Outputs reviewed as safe to commit |
+| 1\. Know what exists | What is there, how big, how fresh, what is empty? | 1 Inventory, 2 Column profile | Code (built: [`inventory_run()`](https://thomuk.github.io/DBinventory/reference/inventory_run.md)) | Every table and column profiled; failures explained |
+| 2\. Collapse to the canonical set | Which 5 to 10 per cent of tables are the real sources? | 3 Duplicate and lineage map, 4 Naming and classification standard | Code proposes clusters; warehouse owners confirm | Canonical list agreed with the owners |
+| 3\. Keys and structure | What is one row of each canonical table, and how do they join? | 8 Key register, 7 Conceptual entity model | Code tests candidates (started: `pk_candidate`, `fk_candidate`); people decide | Every canonical table has a reviewed grain and a tested key; core joins pass |
+| 4\. Document the canonical set | What does each table and term mean? | 5 Data dictionary, 6 Business glossary | Drafted from the profile, reviewed by people; glossary anchored to the NHS Data Dictionary | Dictionary rows marked reviewed; glossary covers the first metrics’ terms |
+| 5\. Control | Who owns what, what is tested, how do definitions change? | 10 Data quality baseline, 11 Stewardship and change control, 9 Metric definition register | Tests in code on a schedule; named stewards; register kept by the team | A steward per canonical table; tests green; first metrics registered with provenance |
+| 6\. Value | Can the business answer its own questions from certified data? | Semantic model (entities from 7, relationships from 8, metrics from 9, descriptions from 5 and 6); decommissioning of the duplicates | Modeller, with the registers as input | Certified datasets in use; duplicate tables retired |
+
+### Phase 0: access and safety
+
+A read-only login with `SELECT` on the objects is enough;
+`INFORMATION_SCHEMA` is readable without system views or Query Store.
+The outputs of phase 1 are committed to a repository, so they must not
+carry patient data: the profile withholds literal values for
+identifiers, free text and personal-data column names by default, and
+the review of that output is the first gate.
+
+### Phase 1: know what exists
+
+One run of
+[`inventory_run()`](https://thomuk.github.io/DBinventory/reference/inventory_run.md)
+against the warehouse gives every table and column with row counts,
+sizes, the newest datetime per table, and a profile of every column.
+This is the only phase that is purely mechanical, and it already answers
+questions the business asks: which tables are stale, which are empty,
+where the volume is, which columns hold personal data. Expect the first
+run to fail on a few objects (broken views, permissions); the run log
+says which, and the run resumes rather than restarts.
+
+### Phase 2: collapse to the canonical set
+
+Columns with the same value fingerprint across tables are the same data
+stored again. Clustering tables by shared fingerprints, then picking the
+widest, freshest, lowest-grain member of each cluster with the fewest
+project-specific filters, is the work that turns hundreds of tables into
+tens. The candidate duplicate columns in the report are the seed; the
+next piece of code clusters whole tables and proposes a canonical member
+with a rationale. The classification standard (source, reference,
+derived, scratch; canonical, duplicate, deprecated; sensitivity classes)
+is written during this phase, because the categories only become clear
+from the data. This is also the first phase that needs the warehouse
+owners in the room: the canonical list is an assertion about which copy
+is right, and they know things the profile cannot show.
+
+### Phase 3: keys and structure
+
+The profile already marks primary key candidates and proposes foreign
+keys from names, value sets, ranges and cardinality. Those are
+shortlists. The key register confirms them with match-rate tests (what
+share of a child’s values exist in the key) on the canonical set only,
+and records uniqueness, nulls and whether a key survives across
+normalisation levels. The `dm` package does this confirmation and then
+holds the result as a data model with an entity relationship diagram, so
+the register should be built on it rather than reimplemented. The
+conceptual entity model is deliberately small and independent of tables:
+the dozen things the hospital counts and how they nest. Grain, stated as
+“one row is one what”, is the single most important field, because every
+later decision about additivity and fan-out depends on it.
+
+### Phase 4: document the canonical set
+
+The data dictionary covers canonical tables only. Descriptions are
+drafted from the profile (name, type, sample values, neighbouring
+columns) and carry a status per row so drafted and reviewed text are
+never confused; the file shape borrows from the Open Data Contract
+Standard so it converts outward later. The glossary is separate from the
+dictionary because a term such as “referral” is carried by many columns
+and its meaning is a business matter: where a national definition exists
+in the NHS Data Dictionary, cite it and record the local deviation.
+
+### Phase 5: control
+
+Control is three things, none of them large: automated tests on the
+canonical set (key uniqueness, referential integrity, freshness,
+row-count drift) run on a schedule with results logged; a named steward
+for each canonical table and glossary term, with a page saying how a
+change is proposed and logged; and the metric register, which records
+each definition as observed with provenance and never asserts a correct
+answer. The register is the artefact most likely to meet resistance, so
+its design matters: two definitions sit side by side with where each was
+seen.
+
+### Phase 6: value
+
+With the gates passed, the semantic model is mechanical: entities from
+the conceptual model, relationships from the key register, dimensions
+and descriptions from the dictionary, metrics from the register. Which
+engine compiles it is an implementation choice for then. The other half
+of the value is subtraction: the hundreds of duplicate tables can be
+retired with confidence, because the canonical set is known, tested and
+owned.
+
+## What DBinventory does and what comes next
+
+Built: phases 0 and 1 in full (inventory, profile, suppression,
+resumable store, exports, report), and the shortlist half of phase 3
+(`pk_candidate`, `fk_candidate` with evidence and confidence).
+
+Next, in order:
+
+1.  **Table clustering** for phase 2: cluster tables by shared
+    fingerprints, classify each member (copy, aggregate, filtered
+    subset, wider derivative, unknown), propose a canonical member with
+    a rationale, and emit the list for the owners to confirm.
+2.  **Key register** for phase 3: confirm the shortlisted keys with
+    match-rate tests, through `dm`, and record the results per entity.
+3.  **Incremental re-profiling**: re-run only tables whose row count or
+    newest datetime has changed, so the inventory can run on a schedule.
+4.  **Dictionary drafts** for phase 4: a first-draft description per
+    canonical column from the profile, with a status field, in the ODCS
+    shape.
+
+Phases 5 and 6 are mostly people and pages rather than package features;
+the package’s job there is to keep the inventory and tests current so
+that what the stewards sign off stays true.
+
+## Ready to start semantic modelling when
+
+- A canonical table exists for every core entity and is agreed with the
+  warehouse owners.
+- Every canonical table has a reviewed grain and a tested primary key.
+- Joins between core entities are in the key register with passing
+  referential tests.
+- The glossary covers the terms the first metrics will use.
+- The metric register holds at least the first few metrics with
+  provenance.
+- Someone is named as steward for each canonical table.
