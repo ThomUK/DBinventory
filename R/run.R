@@ -18,6 +18,11 @@
 #' @param organisation Name of the trust or organisation the database belongs
 #'   to. Recorded in the store's `run_meta` and used to prefix the report
 #'   title.
+#' @param schema_priority Optional schema order for choosing a cluster's
+#'   canonical table, see [cluster_tables()].
+#' @param decisions Optional path to the cluster review CSV, see
+#'   [write_cluster_decisions()]: existing decisions in it are applied, and
+#'   the file is rewritten with any new tables added as proposed.
 #' @param resume Skip tables already profiled in `store`? Default `TRUE`.
 #' @param sizes Read table sizes from system views? Default `TRUE`.
 #' @param disconnect Disconnect a connection this function opened? Default
@@ -26,7 +31,15 @@
 #' @inheritParams db_profile
 #' @return Invisibly, a list with `inventory` (a `db_inventory`), `profile`
 #'   (a `column_profile`, the full contents of the store including earlier
-#'   runs) and `store` (the store path).
+#'   runs), `clusters` (the result of [cluster_tables()], or `NULL` on a
+#'   sampled run) and `store` (the store path).
+#'
+#' @section Full and sampled runs:
+#' Phase 1 (inventory and profile) runs either way. Phases 2 and 3, table
+#' clustering and foreign key inference, need exact statistics and run only
+#' when no table was sampled; on a sampled run they are skipped with a
+#' message and the report says so on their tabs. `sample_rows = Inf` gives a
+#' full run.
 #' @examples
 #' \dontrun{
 #' # the synthetic trust, through the fakehospdata package
@@ -39,6 +52,7 @@
 #' @export
 inventory_run <- function(source, store = "db_inventory.sqlite", export_dir = NULL,
                           export_format = c("csv", "parquet"), report = NULL, organisation = NULL,
+                          schema_priority = NULL, decisions = NULL,
                           schema = NULL, include = NULL, exclude = NULL, views = TRUE,
                           sample_rows = 1e6, top_n = 10, full_set_max = 50, top_values_max_distinct = 10000,
                           keep_values = FALSE, resume = TRUE, sizes = TRUE,
@@ -75,12 +89,27 @@ inventory_run <- function(source, store = "db_inventory.sqlite", export_dir = NU
   st <- store_open(store)
   profile <- store_read(st, "column_profile")
   log <- store_read(st, "profile_log")
+  clusters <- NULL
   if (!is.null(profile) && nrow(profile) > 0) {
-    # foreign keys are inferred across every profiled table, including those
-    # from earlier resumed runs, then written back so the store carries them
-    profile <- infer_foreign_keys(structure(profile, class = c("column_profile", class(profile))))
-    store_write(st, "column_profile", profile)
-    cli::cli_alert_info("{sum(profile$fk_candidate)} foreign key candidate{?s} proposed")
+    profile <- structure(profile, class = c("column_profile", class(profile)))
+    if (any(profile$sampled)) {
+      cli::cli_alert_info("Sampled run ({sum(tapply(profile$sampled, profile$table_name, any))} table{?s} on a sample): foreign keys and table clusters need a full run (sample_rows = Inf) and were skipped")
+      for (t in c("table_clusters", "table_pairs")) if (DBI::dbExistsTable(st$con, t)) DBI::dbRemoveTable(st$con, t)
+    } else {
+      # phases 2 and 3 run across every profiled table, including those from
+      # earlier resumed runs, and are written back so the store carries them
+      profile <- infer_foreign_keys(profile)
+      store_write(st, "column_profile", profile)
+      cli::cli_alert_info("{sum(profile$fk_candidate)} foreign key candidate{?s} proposed")
+      full_inventory <- store_read_inventory(st)
+      prior <- if (!is.null(decisions)) read_cluster_decisions(decisions) else NULL
+      clusters <- cluster_tables(profile, full_inventory, schema_priority = schema_priority, decisions = prior)
+      store_write(st, "table_clusters", clusters$clusters)
+      store_write(st, "table_pairs", clusters$pairs)
+      if (!is.null(decisions)) write_cluster_decisions(clusters$clusters, decisions)
+      n_multi <- sum(table(clusters$clusters$cluster_id) > 1)
+      cli::cli_alert_info("{n_multi} cluster{?s} of related tables proposed")
+    }
   }
   store_close(st)
   n_err <- if (is.null(log)) 0L else sum(log$status == "error")
@@ -88,7 +117,7 @@ inventory_run <- function(source, store = "db_inventory.sqlite", export_dir = NU
 
   if (!is.null(export_dir)) store_export(store, export_dir, export_format)
   if (!is.null(report)) render_report(store, report, organisation = organisation)
-  invisible(list(inventory = inventory, profile = profile, store = store))
+  invisible(list(inventory = inventory, profile = profile, clusters = clusters, store = store))
 }
 
 #' Strip passwords from a connection string before it is logged

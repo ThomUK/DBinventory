@@ -11,6 +11,8 @@ inventory_run(
   export_format = c("csv", "parquet"),
   report = NULL,
   organisation = NULL,
+  schema_priority = NULL,
+  decisions = NULL,
   schema = NULL,
   include = NULL,
   exclude = NULL,
@@ -45,6 +47,13 @@ directory.}
 \item{organisation}{Name of the trust or organisation the database belongs
 to. Recorded in the store's \code{run_meta} and used to prefix the report
 title.}
+
+\item{schema_priority}{Optional schema order for choosing a cluster's
+canonical table, see \code{\link[=cluster_tables]{cluster_tables()}}.}
+
+\item{decisions}{Optional path to the cluster review CSV, see
+\code{\link[=write_cluster_decisions]{write_cluster_decisions()}}: existing decisions in it are applied, and
+the file is rewritten with any new tables added as proposed.}
 
 \item{schema}{Optional character vector of schema names to keep.}
 
@@ -89,7 +98,8 @@ suggest personal data, are suppressed and only their hashes kept. Set
 \value{
 Invisibly, a list with \code{inventory} (a \code{db_inventory}), \code{profile}
 (a \code{column_profile}, the full contents of the store including earlier
-runs) and \code{store} (the store path).
+runs), \code{clusters} (the result of \code{\link[=cluster_tables]{cluster_tables()}}, or \code{NULL} on a
+sampled run) and \code{store} (the store path).
 }
 \description{
 The end-to-end run: connect, build the inventory (artefact 1), write it to
@@ -98,6 +108,15 @@ optionally export CSV or Parquet and render the report. Re-running with the
 same store resumes an interrupted profile; pass \code{resume = FALSE} to start
 over.
 }
+\section{Full and sampled runs}{
+
+Phase 1 (inventory and profile) runs either way. Phases 2 and 3, table
+clustering and foreign key inference, need exact statistics and run only
+when no table was sampled; on a sampled run they are skipped with a
+message and the report says so on their tabs. \code{sample_rows = Inf} gives a
+full run.
+}
+
 \examples{
 \dontrun{
 # the synthetic trust, through the fakehospdata package

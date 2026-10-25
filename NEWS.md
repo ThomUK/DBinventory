@@ -1,3 +1,17 @@
+# DBinventory 0.1.3
+
+* Phase 2, table clustering: `cluster_tables()` matches columns across tables
+  by what they hold, scores table pairs by containment, labels each related
+  pair (copy, filtered subset, wider derivative, narrower, aggregate), groups
+  related tables into clusters and proposes a canonical member with a
+  rationale; every table also gets a class (event, reference, aggregate).
+  `write_cluster_decisions()` and `read_cluster_decisions()` keep the
+  owners' review in a CSV that overrides the proposals on later runs.
+  `inventory_run()` gains `schema_priority` and `decisions`.
+* Phases 2 and 3 are gated on a full run: on a sampled run, clustering and
+  foreign key inference are skipped and the report says so.
+* The report is tabbed by phase: inventory and profile, table clusters, keys.
+
 # DBinventory 0.1.2
 
 * Report tables offer dropdown filters for columns with few distinct values

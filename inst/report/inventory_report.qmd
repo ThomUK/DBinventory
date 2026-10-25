@@ -28,9 +28,20 @@ columns <- store_read(st, "inventory_columns")
 profile <- store_read(st, "column_profile")
 log     <- store_read(st, "profile_log")
 meta    <- store_read(st, "run_meta")
+clusters <- store_read(st, "table_clusters")
+pairs    <- store_read(st, "table_pairs")
 store_close(st)
 if (is.null(profile)) profile <- DBinventory:::empty_profile()
 if (is.null(log)) log <- data.frame(status = character())
+n_sampled <- if (nrow(profile) > 0) length(unique(profile$table_name[profile$sampled %in% TRUE])) else 0
+full_run <- n_sampled == 0
+sampled_note <- function(phase) {
+  cat(sprintf(paste0(
+    "<div class=\"alert alert-info\"><strong>Not computed: this report comes from a sampled run.</strong> ",
+    "%d of %d tables were profiled on a sample of their rows. %s needs exact statistics, so it is only ",
+    "produced by a full run: re-run with <code>sample_rows = Inf</code>.</div>\n\n"),
+    n_sampled, length(unique(paste(profile$table_schema, profile$table_name))), phase))
+}
 has_dt <- requireNamespace("DT", quietly = TRUE)
 library(ggplot2)
 theme_set(theme_minimal(base_size = 12) + theme(panel.grid.minor = element_blank(), axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)))
@@ -91,7 +102,11 @@ if (!is.null(meta) && nrow(meta) > 0) {
 }
 ```
 
-## Tables
+::: {.panel-tabset}
+
+## Phase 1: Inventory and profile
+
+### Tables
 
 Ranked by row count. `newest_datetime` is the latest value in any date or datetime column, the freshness signal. Tables with no datetime column show blank.
 
@@ -102,7 +117,7 @@ cols <- intersect(c("table_schema", "table_name", "table_type", "n_columns", "ro
 show(as.data.frame(t[, cols]))
 ```
 
-### Freshness
+#### Freshness
 
 ```{r freshness, fig.height=4}
 fresh <- tables[!is.na(tables$newest_datetime), ]
@@ -125,7 +140,7 @@ if (length(d) > 0) {
 } else cat("No datetime columns found, so no freshness to show.")
 ```
 
-### Row counts
+#### Row counts
 
 Bins are log-spaced so that reference tables and multi-million-row logs both show; each bar covers the row counts between the two boundaries it sits on. Bars are not equal widths because 1 to 2 and 5 to 10 each double, while 2 to 5 is a factor of 2.5.
 
@@ -147,9 +162,9 @@ if (length(rc) > 0) {
 }
 ```
 
-## Columns
+### Columns
 
-### Type mix
+#### Type mix
 
 ```{r types}
 tc <- as.data.frame(table(type_class = columns$type_class), stringsAsFactors = FALSE)
@@ -158,7 +173,7 @@ names(tc)[2] <- "columns"
 knitr::kable(tc, row.names = FALSE)
 ```
 
-### Inferred semantic types
+#### Inferred semantic types
 
 A first draft: `identifier`, `code`, `category`, `flag`, `date`, `datetime`, `free_text`, `count`, `measure`, `constant`, `empty`. For a person to confirm, not a finding.
 
@@ -171,7 +186,7 @@ if (nrow(profile) > 0) {
 }
 ```
 
-### Nulls and uniqueness
+#### Nulls and uniqueness
 
 ```{r nulls, fig.height=4}
 if (nrow(profile) > 0) {
@@ -199,45 +214,9 @@ if (nrow(profile) > 0) {
 }
 ```
 
-## Candidate duplicate columns
+### Column profile
 
-Groups of columns in different tables whose contents look the same: same type class, same order of magnitude of distinct values, same minimum and maximum and the same most frequent values, hashed together as a fingerprint. Each row is one group, listing every column in it; a group spanning a source table and a derived table is probably a copy, and columns matching under different names are the ones worth checking first. It is a starting point for the duplicate map, not a verdict: value-overlap tests confirm or reject it in the next stage.
-
-```{r dupes}
-if (nrow(profile) > 0) {
-  dup <- as.data.frame(duplicate_candidates(profile))
-  if (nrow(dup) > 0) {
-    dup$columns <- vapply(strsplit(dup$columns, "; ", fixed = TRUE), function(cols) {
-      paste(if (has_dt) htmltools::htmlEscape(cols) else cols, collapse = if (has_dt) "<br>" else "; ")
-    }, character(1))
-    show(dup, escape = setdiff(seq_along(dup), which(names(dup) == "columns")))
-  } else cat("No cross-table fingerprint matches.")
-}
-```
-
-## Foreign key candidates
-
-Columns that look like references to a key column in another table, scored from profile statistics alone. **These are candidates, not confirmed relationships**: confirming one needs a match-rate query (what share of the child's values exist in the key), which is the key register's job in the next stage.
-
-A pair is excluded outright when the types differ, the child's string lengths fall outside the key's, a unique child shares the key's fingerprint (a copy, not a reference), the key's full value set is known and the child uses a value outside it, the child has more distinct values than a fully profiled key, the shapes of their values do not overlap (`100` cannot reference `Ward 3`), the child is a flag, the key is in the child's own table without a self-referencing name, or the child is itself a key with no name evidence. Surviving pairs start at 0.1 and add: name evidence (0.45 same name, 0.3 child name ends with the key name, 0.2 child name contains the key's table stem; generic names like `id` or `code` earn nothing); up to 0.4 when every child value is in the key's known value set, scaled by how much of the set the child uses; 0.25 (or -0.25) for the child's range lying inside (or outside) the key's when the value set is unknown; 0.15 for a many-to-one shape or 0.05 for one-to-one; 0.1 for identical string lengths. The best target at or above 0.6 is reported; `n_targets` counts the keys that qualified, since a conformed code such as a site code legitimately matches several. Full detail: `?infer_foreign_keys`.
-
-```{r fks}
-if (nrow(profile) > 0 && "fk_candidate" %in% names(profile) && any(profile$fk_candidate, na.rm = TRUE)) {
-  fk <- profile[profile$fk_candidate %in% TRUE, ]
-  fk <- fk[order(-fk$fk_confidence, fk$table_schema, fk$table_name, fk$column_name), ]
-  fk <- data.frame(
-    child = paste(fk$table_schema, fk$table_name, fk$column_name, sep = "."),
-    target = fk$fk_target, confidence = fk$fk_confidence, n_targets = fk$fk_n_targets,
-    child_sampled = fk$sampled, evidence = gsub("; ", if (has_dt) "<br>" else "; ", fk$fk_evidence),
-    stringsAsFactors = FALSE
-  )
-  show(fk, escape = setdiff(seq_along(fk), which(names(fk) == "evidence")))
-} else cat("No foreign key candidates found.")
-```
-
-## Column profile
-
-`pk_candidate` marks columns that are unique, never null and of a type keys are made of; where `sampled` is true that is evidence from the sample only. `fk_candidate` and `fk_target` give the key column this column most looks like a reference to, with `fk_confidence` from 0 to 1 (see the foreign key candidates section above); both are blank for the many columns that are not candidates. `top_values` lists the most frequent values with their counts; blank where values are suppressed or the column has too many distinct values for a frequency table to be useful.
+`pk_candidate` marks columns that are unique, never null and of a type keys are made of; where `sampled` is true that is evidence from the sample only. `top_values` lists the most frequent values with their counts; blank where values are suppressed or the column has too many distinct values for a frequency table to be useful.
 
 ```{r profile}
 if (nrow(profile) > 0) {
@@ -253,9 +232,126 @@ if (nrow(profile) > 0) {
     paste(items, collapse = if (has_dt) ";<br>" else "; ")
   }, character(1), USE.NAMES = FALSE)
   cols <- c("table_schema", "table_name", "column_name", "data_type", "semantic_type", "row_count", "null_rate",
-            "distinct_count", "distinct_rate", "is_unique", "pk_candidate", "fk_candidate", "fk_target", "fk_confidence", "min_value", "max_value", "mean_value", "top_values", "sampled")
+            "distinct_count", "distinct_rate", "is_unique", "pk_candidate", "min_value", "max_value", "mean_value", "top_values", "sampled")
   p <- as.data.frame(p[, intersect(cols, names(p))])
   # every column is HTML-escaped except top_values, whose values were escaped above
   show(p, escape = setdiff(seq_along(p), which(names(p) == "top_values")))
 }
 ```
+
+## Phase 2: Table clusters
+
+```{r phase2-gate, results="asis"}
+if (!full_run) sampled_note("Table clustering")
+```
+
+```{r phase2, results="asis", eval=full_run}
+cat("Tables that hold the same data, grouped, with a proposed canonical member for each group. Columns are matched across tables by what they hold (complete value sets for code lists, value ranges, distinct rate, value shape, string lengths, and name as a secondary signal); a pair of tables is related when most of one table's information is found in the other **and** they share a column that is near-unique in both, so that a table which merely references another through a foreign key is not mistaken for a copy. Each related table is labelled a *copy*, *filtered subset*, *wider derivative*, *narrower* version or *aggregate* of the canonical member, which is proposed as the lowest-grain, widest, freshest table with a key. **These are proposals** for the warehouse owners to confirm or reject in the review file (`decisions` in `inventory_run()`); confirmed decisions override the proposals on later runs. Full detail: `?cluster_tables`.\n\n")
+if (is.null(clusters) || nrow(clusters) == 0) {
+  cat("No clusters were computed.\n\n")
+} else {
+  n_multi <- sum(table(clusters$cluster_id) > 1)
+  cat(sprintf("**%d** groups of related tables among **%d** tables; **%d** tables stand alone. Table classes from their own shape: %s.\n\n",
+      n_multi, nrow(clusters), sum(!clusters$cluster_id %in% clusters$cluster_id[duplicated(clusters$cluster_id)]),
+      paste(sprintf("%d %s", table(clusters$table_class), names(table(clusters$table_class))), collapse = ", ")))
+}
+```
+
+```{r phase2-clusters, eval=full_run}
+if (!is.null(clusters) && nrow(clusters) > 0) {
+  cl <- clusters[clusters$cluster_id %in% clusters$cluster_id[duplicated(clusters$cluster_id)], ]
+  if (nrow(cl) > 0) {
+    cl <- cl[order(cl$cluster_id, cl$role != "canonical", cl$table), ]
+    show(as.data.frame(cl[, c("cluster_id", "table", "table_class", "role", "canonical", "row_count", "n_columns", "newest_datetime", "confidence", "status", "rationale")]))
+  } else cat("No two tables were found to hold the same data.")
+}
+```
+
+```{r phase2-classes, results="asis", eval=full_run}
+if (!is.null(clusters) && nrow(clusters) > 0) {
+  cat("\n#### Every table and its class\n\n")
+  cat("`event` tables carry identifiers and are where activity is recorded; `reference` tables are small code lists with a key; `aggregate` tables summarise by date or code with no identifiers.\n\n")
+}
+```
+
+```{r phase2-all, eval=full_run}
+if (!is.null(clusters) && nrow(clusters) > 0) {
+  show(as.data.frame(clusters[order(clusters$table), c("table", "table_class", "cluster_id", "role", "canonical", "row_count", "n_columns", "status")]))
+}
+```
+
+```{r phase2-pairs, results="asis", eval=full_run}
+if (!is.null(pairs) && nrow(pairs) > 0) {
+  cat("\n#### Evidence for each related pair\n\n")
+  cat("`contain_a_in_b` is the share of A's information found in B (weighted by how informative each column is), and the reverse; `shared_entity_exact` means an identifier with identical values in both.\n\n")
+}
+```
+
+```{r phase2-pairs-table, eval=full_run}
+if (!is.null(pairs) && nrow(pairs) > 0) {
+  pr <- as.data.frame(pairs)
+  pr$contain_a_in_b <- round(pr$contain_a_in_b, 2); pr$contain_b_in_a <- round(pr$contain_b_in_a, 2); pr$similarity <- round(pr$similarity, 2)
+  show(pr[order(-pr$similarity), c("table_a", "relationship_a", "table_b", "relationship_b", "contain_a_in_b", "contain_b_in_a", "n_matches", "shared_entity_exact")])
+}
+```
+
+### Candidate duplicate columns
+
+```{r dup-gate, results="asis"}
+if (!full_run) cat("Not computed on a sampled run.\n\n")
+```
+
+Groups of columns in different tables whose contents look the same: same type class, same order of magnitude of distinct values, same minimum and maximum and the same most frequent values, hashed together as a fingerprint. Each row is one group, listing every column in it; a group spanning a source table and a derived table is probably a copy, and columns matching under different names are the ones worth checking first. It is a starting point for the duplicate map, not a verdict: value-overlap tests confirm or reject it in the next stage.
+
+```{r dupes, eval=full_run}
+if (nrow(profile) > 0) {
+  dup <- as.data.frame(duplicate_candidates(profile))
+  if (nrow(dup) > 0) {
+    dup$columns <- vapply(strsplit(dup$columns, "; ", fixed = TRUE), function(cols) {
+      paste(if (has_dt) htmltools::htmlEscape(cols) else cols, collapse = if (has_dt) "<br>" else "; ")
+    }, character(1))
+    show(dup, escape = setdiff(seq_along(dup), which(names(dup) == "columns")))
+  } else cat("No cross-table fingerprint matches.")
+}
+```
+
+## Phase 3: Keys
+
+```{r phase3-gate, results="asis"}
+if (!full_run) sampled_note("Key inference")
+```
+
+### Primary key candidates
+
+```{r pk-note, results="asis", eval=full_run}
+cat("Columns that are unique, never null and of a type keys are made of. On a full run these are exact facts about the data, not estimates; whether a column *is* the key is still a decision for the key register.\n\n")
+```
+
+```{r pks, eval=full_run}
+if (nrow(profile) > 0 && any(profile$pk_candidate %in% TRUE)) {
+  pk <- profile[profile$pk_candidate %in% TRUE, ]
+  show(as.data.frame(pk[order(pk$table_schema, pk$table_name, pk$ordinal_position), c("table_schema", "table_name", "column_name", "data_type", "semantic_type", "row_count", "distinct_count")]))
+} else cat("No primary key candidates.")
+```
+
+### Foreign key candidates
+
+Columns that look like references to a key column in another table, scored from profile statistics alone. **These are candidates, not confirmed relationships**: confirming one needs a match-rate query (what share of the child's values exist in the key), which is the key register's job in the next stage.
+
+A pair is excluded outright when the types differ, the child's string lengths fall outside the key's, a unique child shares the key's fingerprint (a copy, not a reference), the key's full value set is known and the child uses a value outside it, the child has more distinct values than a fully profiled key, the shapes of their values do not overlap (`100` cannot reference `Ward 3`), the child is a flag, the key is in the child's own table without a self-referencing name, or the child is itself a key with no name evidence. Surviving pairs start at 0.1 and add: name evidence (0.45 same name, 0.3 child name ends with the key name, 0.2 child name contains the key's table stem; generic names like `id` or `code` earn nothing); up to 0.4 when every child value is in the key's known value set, scaled by how much of the set the child uses; 0.25 (or -0.25) for the child's range lying inside (or outside) the key's when the value set is unknown; 0.15 for a many-to-one shape or 0.05 for one-to-one; 0.1 for identical string lengths. The best target at or above 0.6 is reported; `n_targets` counts the keys that qualified, since a conformed code such as a site code legitimately matches several. Full detail: `?infer_foreign_keys`.
+
+```{r fks, eval=full_run}
+if (nrow(profile) > 0 && "fk_candidate" %in% names(profile) && any(profile$fk_candidate, na.rm = TRUE)) {
+  fk <- profile[profile$fk_candidate %in% TRUE, ]
+  fk <- fk[order(-fk$fk_confidence, fk$table_schema, fk$table_name, fk$column_name), ]
+  fk <- data.frame(
+    child = paste(fk$table_schema, fk$table_name, fk$column_name, sep = "."),
+    target = fk$fk_target, confidence = fk$fk_confidence, n_targets = fk$fk_n_targets,
+    child_sampled = fk$sampled, evidence = gsub("; ", if (has_dt) "<br>" else "; ", fk$fk_evidence),
+    stringsAsFactors = FALSE
+  )
+  show(fk, escape = setdiff(seq_along(fk), which(names(fk) == "evidence")))
+} else cat("No foreign key candidates found.")
+```
+
+:::

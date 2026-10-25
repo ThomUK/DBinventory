@@ -40,7 +40,8 @@
 #'   on a sampled table this is evidence from the sample only), `fk_candidate`,
 #'   `fk_target`, `fk_confidence` and `fk_evidence` (see [infer_foreign_keys()];
 #'   inferred across the tables profiled in this call, or across the whole
-#'   store by [inventory_run()]),
+#'   store by [inventory_run()], and only on a full run: a sampled run leaves
+#'   them `NA`),
 #'   `min_value`, `max_value`, `mean_value`, `min_length`, `max_length`,
 #'   `mean_length`, `true_count`, `top_values` (JSON), `top_values_hash`,
 #'   `semantic_type`, `values_suppressed`, `value_fingerprint`,
@@ -105,7 +106,12 @@ db_profile <- function(con, inventory = NULL, tables = NULL, sample_rows = 1e6, 
   out <- do.call(rbind, results)
   if (is.null(out)) out <- empty_profile()
   out <- structure(as_tbl(out), class = c("column_profile", class(as_tbl(out))))
-  infer_foreign_keys(out)
+  if (any(out$sampled)) {
+    cli::cli_alert_info("Sampled run: foreign key inference needs exact statistics and was skipped (use sample_rows = Inf)")
+    with_fk_placeholders(out)
+  } else {
+    infer_foreign_keys(out)
+  }
 }
 
 #' Profile one table

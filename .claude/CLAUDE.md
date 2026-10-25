@@ -14,6 +14,8 @@
   commit as the change, and adds a bullet under a heading for that version
   at the top of `NEWS.md`. Documentation-only commits (README, articles,
   `_pkgdown.yml`, workflows, CLAUDE.md, regenerated example reports) do not.
+- Phases 2 and 3 (table clusters, foreign keys) are gated on a full run; a
+  sampled run only produces phase 1. The report is one tab per phase.
 - Run `Rscript -e 'devtools::test()'` and `rcmdcheck::rcmdcheck()` before
   pushing. CRAN is unreachable from the default cloud environment; R and most
   dependencies install from the Ubuntu archive (`apt-get install r-base r-cran-*`).

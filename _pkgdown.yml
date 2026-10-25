@@ -51,9 +51,14 @@ reference:
   - db_profile
   - top_values_of
   - infer_semantic_type
-  - infer_foreign_keys
   - fingerprints
   - duplicate_candidates
+- title: Table clusters and keys
+  desc: Artefacts 3 and 8, proposed from the profile on a full run.
+  contents:
+  - cluster_tables
+  - write_cluster_decisions
+  - infer_foreign_keys
 - title: Store, export and report
   contents:
   - store_open

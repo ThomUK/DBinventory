@@ -108,7 +108,27 @@ DBI::dbDisconnect(con)
 | `value_fingerprint`, `column_fingerprint` | Hash of what the column holds (type, distinct magnitude, min, max, top values), with and without the normalised column name |
 | `values_suppressed` | Whether literal values were withheld (see below) |
 
-### Key candidates
+### Table clusters (phase 2)
+
+On a full run, `cluster_tables()` groups tables that hold the same data and
+proposes a canonical member for each group with a one-line rationale, and
+classes every table as event, reference or aggregate from its own shape.
+Columns are matched by what they hold (complete value sets for code lists,
+ranges, distinct rate, value shape, lengths, with name as a secondary signal),
+and two tables are related only when most of one's information is in the
+other **and** they share a column that is near-unique in both, so a table
+that merely references another through a foreign key is not mistaken for a
+copy. The proposals go to a review CSV (`decisions = "clusters.csv"` in
+`inventory_run()`), where the warehouse owners mark each row `confirmed` or
+`rejected`; those decisions override the proposals on later runs.
+`schema_priority = c("layer1", "derived")` prefers source-schema tables as
+canonical where the data alone cannot decide.
+
+Clustering and key inference need exact statistics, so they run only on a
+full run (`sample_rows = Inf`). On a sampled run the report's phase 2 and
+phase 3 tabs say so.
+
+### Key candidates (phase 3)
 
 `pk_candidate` marks columns that are unique, never null and of a key-like
 type. `fk_candidate` and `fk_target` propose, for each column, the key column
