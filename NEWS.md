@@ -1,3 +1,7 @@
+# DBinventory 0.1.7
+
+* Report: a diagram explains freshness (the newest date a table holds, and tables placed on a timeline) above the phase 1 freshness chart.
+
 # DBinventory 0.1.6
 
 * Report: a diagram of primary and foreign key candidates heads the phase 3 tab, and the sampled-run note shows what a sampled check reviewed against a full one.

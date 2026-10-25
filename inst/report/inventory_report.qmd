@@ -145,6 +145,48 @@ show(as.data.frame(t[, cols]))
 
 #### Freshness
 
+```{r freshness-intro, results="asis"}
+cat('
+How recent is each table? There is no reliable "last updated" stamp on a table, so the report takes the newest value in any of its date or datetime columns as its freshness: the latest moment the data describes. Tables with no date column have no freshness and show blank.
+
+<svg viewBox="0 0 960 230" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:960px;font-family:sans-serif">
+  <defs><marker id="frarrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1f4e79"/></marker></defs>
+  <g font-size="12" fill="#222">
+    <!-- one table, its date columns, the newest value -->
+    <text x="200" y="22" text-anchor="middle" font-weight="bold" fill="#1f4e79">For each table: the newest date it holds</text>
+    <rect x="30" y="35" width="340" height="130" rx="6" fill="#dbe7f3" stroke="#1f4e79"/>
+    <text x="200" y="55" text-anchor="middle" font-weight="bold">Admissions</text>
+    <g font-family="monospace" font-size="12">
+      <text x="45" y="80">spell_id</text><text x="125" y="80">admitted</text><text x="225" y="80">discharged</text><text x="325" y="80">ward</text>
+      <text x="45" y="100">S1</text><text x="125" y="100">2026-01-04</text><text x="225" y="100">2026-01-09</text><text x="325" y="100">B2</text>
+      <text x="45" y="120">S2</text><text x="125" y="120">2026-03-18</text><text x="225" y="120">2026-03-20</text><text x="325" y="120">C1</text>
+      <text x="45" y="140">S3</text><text x="125" y="140">2026-03-29</text><text x="225" y="140" font-weight="bold">2026-04-02</text><text x="325" y="140">B2</text>
+    </g>
+    <rect x="119" y="66" width="92" height="82" rx="3" fill="none" stroke="#b36b00" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <rect x="219" y="66" width="92" height="82" rx="3" fill="none" stroke="#b36b00" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <text x="200" y="188" text-anchor="middle" font-size="11">date columns are scanned (dashed);</text>
+    <text x="200" y="204" text-anchor="middle" font-size="11">the newest value, <tspan font-weight="bold">2026-04-02</tspan>, is the table\'s freshness</text>
+    <!-- timeline -->
+    <text x="670" y="22" text-anchor="middle" font-weight="bold" fill="#1f4e79">Across tables: who is current and who is stale</text>
+    <line x1="430" y1="110" x2="920" y2="110" stroke="#555" stroke-width="2" marker-end="url(#frarrow)"/>
+    <text x="440" y="130" font-size="11" fill="#444">2023</text>
+    <text x="650" y="130" font-size="11" fill="#444">2025</text>
+    <text x="880" y="130" text-anchor="middle" font-size="11" fill="#444">today</text>
+    <line x1="880" y1="95" x2="880" y2="125" stroke="#b36b00" stroke-width="2"/>
+    <circle cx="480" cy="110" r="7" fill="#eeeeee" stroke="#777"/>
+    <text x="480" y="90" text-anchor="middle" font-size="11">old project table</text>
+    <circle cx="700" cy="110" r="7" fill="#eeeeee" stroke="#777"/>
+    <text x="700" y="90" text-anchor="middle" font-size="11">refreshed a year ago</text>
+    <circle cx="862" cy="110" r="7" fill="#dbe7f3" stroke="#1f4e79"/>
+    <text x="862" y="155" text-anchor="middle" font-size="11">Admissions: current</text>
+    <text x="670" y="188" text-anchor="middle" font-size="11">the chart below places every table on this line;</text>
+    <text x="670" y="204" text-anchor="middle" font-size="11">a cluster far to the left is a decommissioning list</text>
+  </g>
+</svg>
+
+')
+```
+
 ```{r freshness, fig.height=4}
 fresh <- tables[!is.na(tables$newest_datetime), ]
 d <- if (nrow(fresh) > 0) as.Date(substr(fresh$newest_datetime, 1, 10)) else as.Date(character())

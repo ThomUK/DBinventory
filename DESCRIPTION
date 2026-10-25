@@ -1,6 +1,6 @@
 Package: DBinventory
 Title: Inventory and Column Profile of a Database or Parquet Store
-Version: 0.1.6
+Version: 0.1.7
 Authors@R: 
     person("Tom", "Smith", , "tomsmith_uk@hotmail.com", role = c("aut", "cre"))
 Description: Builds the first two artefacts of a data-documentation effort from
