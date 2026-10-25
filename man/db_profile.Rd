@@ -73,7 +73,11 @@ store by \code{\link[=inventory_run]{inventory_run()}}, and only on a full run: 
 them \code{NA}),
 \code{min_value}, \code{max_value}, \code{mean_value}, \code{min_length}, \code{max_length},
 \code{mean_length}, \code{true_count}, \code{top_values} (JSON), \code{top_values_hash},
-\code{semantic_type}, \code{values_suppressed}, \code{value_fingerprint},
+\code{semantic_type}, \code{values_suppressed}, \code{suppression_reason} (\code{personal_data},
+\code{free_text} or \code{identifier} where values are suppressed, else \code{NA}),
+\code{top_values_omitted} (why a column has no frequency table: \code{suppressed},
+\verb{unsupported type}, \verb{no values}, \verb{too many distinct values} or
+\verb{query failed}; \code{NA} where it has one), \code{value_fingerprint},
 \code{column_fingerprint}, \code{rows_profiled}, \code{sampled}, \code{sample_method},
 \code{profiled_at}.
 }

@@ -78,8 +78,12 @@ fill_orange <- "#F58518"
 # a global search, a rows-per-page menu and CSV/copy buttons. Columns with at
 # most `dropdown_max` distinct values become factors so DT offers a dropdown.
 dropdown_max <- 50
-show <- function(x, ...) {
-  if (!has_dt) return(knitr::kable(utils::head(x, 200)))
+# `na_dash` names columns whose missing values print as "-" (the data stays numeric, so its slider filter still works)
+show <- function(x, na_dash = character(), ...) {
+  if (!has_dt) {
+    for (nm in intersect(na_dash, names(x))) x[[nm]] <- ifelse(is.na(x[[nm]]), "-", as.character(x[[nm]]))
+    return(knitr::kable(utils::head(x, 200)))
+  }
   for (nm in names(x)) {
     v <- x[[nm]]
     if (is.logical(v)) x[[nm]] <- factor(v, levels = c(TRUE, FALSE))
@@ -89,7 +93,8 @@ show <- function(x, ...) {
     x, rownames = FALSE, filter = "top", extensions = "Buttons",
     options = list(
       pageLength = 15, lengthMenu = list(c(15, 50, 100, -1), c("15", "50", "100", "All")),
-      scrollX = TRUE, dom = "Blfrtip", buttons = c("csv", "copy"), searchHighlight = TRUE
+      scrollX = TRUE, dom = "Blfrtip", buttons = c("csv", "copy"), searchHighlight = TRUE,
+      columnDefs = list(list(targets = which(names(x) %in% na_dash) - 1, defaultContent = "-"))
     ), ...
   )
 }
@@ -284,7 +289,7 @@ if (nrow(profile) > 0) {
 
 ### Column profile
 
-`pk_candidate` marks columns that are unique, never null and of a type keys are made of; where `sampled` is true that is evidence from the sample only. `top_values` lists the most frequent values with their counts; blank where values are suppressed or the column has too many distinct values for a frequency table to be useful.
+`pk_candidate` marks columns that are unique, never null and of a type keys are made of; where `sampled` is true that is evidence from the sample only. `top_values` lists the most frequent values with their counts. Where a value is not shown, the cell says why: *potentially confidential* (the column name suggests personal data), *free text*, *identifier* (an identifier with too many distinct values to be a code list), *too many distinct values* for a frequency table to be useful, *all null*, or a type the profiler does not summarise. `mean_value` is computed for numbers only and shows a dash elsewhere.
 
 ```{r profile}
 if (nrow(profile) > 0) {
@@ -294,16 +299,36 @@ if (nrow(profile) > 0) {
   p$mean_value <- round(p$mean_value, 3)
   p$mean_length <- round(p$mean_length, 1)
   p$top_values <- vapply(p$top_values, function(j) {
-    if (is.na(j)) return("")
+    if (is.na(j)) return(NA_character_)
     tv <- jsonlite::fromJSON(j)
     items <- paste0(if (has_dt) htmltools::htmlEscape(tv$value) else tv$value, " (", format(tv$n, big.mark = ",", trim = TRUE), ")")
     paste(items, collapse = if (has_dt) ";<br>" else "; ")
   }, character(1), USE.NAMES = FALSE)
+  # say why a value is missing rather than leave the cell blank
+  reason <- if ("suppression_reason" %in% names(p)) p$suppression_reason else rep(NA_character_, nrow(p))
+  suppressed_as <- c(personal_data = "not listed (potentially confidential)", free_text = "not listed (free text)",
+                     identifier = "not listed (identifier)")
+  why_suppressed <- ifelse(!is.na(p$values_suppressed) & p$values_suppressed,
+                           ifelse(reason %in% names(suppressed_as), suppressed_as[reason], "not listed (potentially confidential)"),
+                           NA_character_)
+  all_null <- !is.na(p$null_count) & !is.na(p$rows_profiled) & p$null_count >= p$rows_profiled
+  why_no_extreme <- ifelse(!is.na(why_suppressed), why_suppressed,
+                    ifelse(p$type_class == "boolean", "not computed (true/false)",
+                    ifelse(!p$type_class %in% c("string", "integer", "numeric", "date", "datetime", "time", "uuid"), "not computed (unsupported type)",
+                    ifelse(all_null, "no values (all null)", "not available"))))
+  for (nm in c("min_value", "max_value")) p[[nm]] <- ifelse(is.na(p[[nm]]) | p[[nm]] == "", why_no_extreme, p[[nm]])
+  omitted <- if ("top_values_omitted" %in% names(p)) p$top_values_omitted else rep(NA_character_, nrow(p))
+  omitted_as <- c("unsupported type" = "not listed (unsupported type)", "no values" = "no values (all null)",
+                  "too many distinct values" = "not listed (too many distinct values)", "query failed" = "not available (query failed)")
+  why_no_top <- ifelse(!is.na(why_suppressed), why_suppressed,
+                ifelse(omitted %in% names(omitted_as), omitted_as[omitted],
+                ifelse(all_null, "no values (all null)", "not listed")))
+  p$top_values <- ifelse(is.na(p$top_values), if (has_dt) htmltools::htmlEscape(why_no_top) else why_no_top, p$top_values)
   cols <- c("table_schema", "table_name", "column_name", "data_type", "semantic_type", "row_count", "null_rate",
             "distinct_count", "distinct_rate", "is_unique", "pk_candidate", "min_value", "max_value", "mean_value", "top_values", "sampled")
   p <- as.data.frame(p[, intersect(cols, names(p))])
   # every column is HTML-escaped except top_values, whose values were escaped above
-  show(p, escape = setdiff(seq_along(p), which(names(p) == "top_values")))
+  show(p, na_dash = "mean_value", escape = setdiff(seq_along(p), which(names(p) == "top_values")))
 }
 ```
 

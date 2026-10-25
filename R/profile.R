@@ -44,7 +44,11 @@
 #'   them `NA`),
 #'   `min_value`, `max_value`, `mean_value`, `min_length`, `max_length`,
 #'   `mean_length`, `true_count`, `top_values` (JSON), `top_values_hash`,
-#'   `semantic_type`, `values_suppressed`, `value_fingerprint`,
+#'   `semantic_type`, `values_suppressed`, `suppression_reason` (`personal_data`,
+#'   `free_text` or `identifier` where values are suppressed, else `NA`),
+#'   `top_values_omitted` (why a column has no frequency table: `suppressed`,
+#'   `unsupported type`, `no values`, `too many distinct values` or
+#'   `query failed`; `NA` where it has one), `value_fingerprint`,
 #'   `column_fingerprint`, `rows_profiled`, `sampled`, `sample_method`,
 #'   `profiled_at`.
 #' @examples
@@ -176,8 +180,13 @@ profile_table <- function(con, d, tab, cols, sample_rows, top_n, full_set_max, t
   out$mean_length <- stats$avglen
 
   # ---- top values, one query per eligible column -----------------------------
-  eligible <- cols$type_class %in% c("string", "integer", "numeric", "boolean", "date", "datetime", "uuid", "time") &
-    !is.na(out$distinct_count) & out$distinct_count > 0 & out$distinct_count <= top_values_max_distinct
+  valued_type <- cols$type_class %in% c("string", "integer", "numeric", "boolean", "date", "datetime", "uuid", "time")
+  eligible <- valued_type & !is.na(out$distinct_count) & out$distinct_count > 0 & out$distinct_count <= top_values_max_distinct
+  # why a column has no frequency table (NA where it has one)
+  omitted <- rep(NA_character_, nrow(cols))
+  omitted[!valued_type] <- "unsupported type"
+  omitted[valued_type & (is.na(out$distinct_count) | out$distinct_count == 0)] <- "no values"
+  omitted[valued_type & !is.na(out$distinct_count) & out$distinct_count > top_values_max_distinct] <- "too many distinct values"
   top <- vector("list", nrow(cols))
   for (j in which(eligible)) {
     n_values <- if (out$distinct_count[j] <= full_set_max) max(top_n, out$distinct_count[j]) else top_n
@@ -185,6 +194,7 @@ profile_table <- function(con, d, tab, cols, sample_rows, top_n, full_set_max, t
       top_values(con, d, src, cols$qname[j], cols$type_class[j], n_values),
       error = function(e) NULL
     )
+    if (is.null(top[[j]])) omitted[j] <- "query failed"
   }
   out$top_values <- vapply(top, function(x) if (is.null(x)) NA_character_ else jsonlite::toJSON(x, dataframe = "rows", na = "null", auto_unbox = FALSE), character(1))
   out$top_values_hash <- vapply(top, function(x) if (is.null(x)) NA_character_ else hash_values(x$value), character(1))
@@ -194,8 +204,12 @@ profile_table <- function(con, d, tab, cols, sample_rows, top_n, full_set_max, t
   fp <- fingerprints(out)
   out$value_fingerprint <- fp$value
   out$column_fingerprint <- fp$column
-  out$values_suppressed <- !keep_values & is_sensitive(out)
+  reason <- suppression_reason(out)
+  out$values_suppressed <- !keep_values & !is.na(reason)
   sup <- out$values_suppressed
+  out$suppression_reason <- ifelse(sup, reason, NA_character_)
+  omitted[sup] <- "suppressed"
+  out$top_values_omitted <- omitted
   out$min_value[sup & !out$type_class %in% c("date", "datetime", "time")] <- NA_character_
   out$max_value[sup & !out$type_class %in% c("date", "datetime", "time")] <- NA_character_
   out$top_values[sup] <- NA_character_
@@ -263,6 +277,7 @@ empty_profile <- function() {
     min_length = numeric(), max_length = numeric(), mean_length = numeric(),
     top_values = character(), top_values_hash = character(), semantic_type = character(),
     value_fingerprint = character(), column_fingerprint = character(), values_suppressed = logical(),
+    suppression_reason = character(), top_values_omitted = character(),
     profiled_at = character(), stringsAsFactors = FALSE
   )
 }

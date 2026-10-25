@@ -74,11 +74,16 @@ test_that("sensitive values are suppressed by default but hashes survive", {
   shut <- db_profile(con, inv, progress = FALSE)
   nhs <- shut[shut$column_name == "nhs_number", ]
   expect_true(nhs$values_suppressed)
+  expect_equal(nhs$suppression_reason, "personal_data")
+  expect_equal(nhs$top_values_omitted, "suppressed")
   expect_true(is.na(nhs$min_value) && is.na(nhs$max_value) && is.na(nhs$top_values))
   expect_false(is.na(nhs$top_values_hash))
   expect_equal(nhs$value_fingerprint, open$value_fingerprint[open$column_name == "nhs_number"])
   expect_true(shut$values_suppressed[shut$column_name == "note"])
+  expect_equal(shut$suppression_reason[shut$column_name == "note"], "free_text")
   expect_false(shut$values_suppressed[shut$column_name == "code"])
+  expect_true(is.na(shut$suppression_reason[shut$column_name == "code"]))
+  expect_true(is.na(shut$top_values_omitted[shut$column_name == "code"]))
   expect_false(is.na(shut$min_value[shut$column_name == "seen"]))
 })
 

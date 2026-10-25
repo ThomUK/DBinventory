@@ -83,21 +83,33 @@ infer_semantic_type <- function(profile, top = NULL) {
   out
 }
 
-#' Which columns hold values that should not be copied into a profile?
+#' Why should a column's values not be copied into a profile?
 #'
-#' Free text, identifiers with more than 200 distinct values, and anything
-#' whose name suggests personal data whatever its inferred type. Small
-#' identifier lists are code lists. Dates are kept because freshness depends
-#' on them.
+#' Returns one reason per column, or `NA` where the values may be listed:
+#' `"personal_data"` for anything whose name suggests personal data whatever
+#' its inferred type, `"free_text"` for free text (by inferred type or by a
+#' name such as `comment` or `note`), `"identifier"` for identifiers with
+#' more than 200 distinct values. Small identifier lists are code lists.
+#' Dates are kept because freshness depends on them.
 #' @noRd
-is_sensitive <- function(profile) {
+suppression_reason <- function(profile) {
   name <- tolower(profile$column_name)
-  personal <- grepl("nhs|mrn|hosp(ital)?_?no|patient_?(id|ref|identifier)|postcode|post_code|zip|dob|date_of_birth|birth|surname|forename|first_?name|last_?name|full_?name|address|phone|tel|mobile|email|nino|national_insurance|passport|gp_?practice|free_?text|comment|note|narrative|report",
+  personal <- grepl("nhs|mrn|hosp(ital)?_?no|patient_?(id|ref|identifier)|postcode|post_code|zip|dob|date_of_birth|birth|surname|forename|first_?name|last_?name|full_?name|address|phone|tel|mobile|email|nino|national_insurance|passport|gp_?practice",
     name, perl = TRUE)
+  text_name <- grepl("free_?text|comment|note|narrative|report", name, perl = TRUE)
   # ...unless the name says it is a classifier of that thing (nhs_number_status, postcode_area_type)
   classifier <- grepl("(status|code|type|indicator|flag|group|desc|description|category|kind|area|district|sector|count|n)$|^(n|num|count|number_of|has|is)_", name, perl = TRUE)
   # an identifier drawn from a small set (a specialty or ward code list) is a code, not personal data
   small_list <- !is.na(profile$distinct_count) & profile$distinct_count <= 200
-  type_sensitive <- profile$semantic_type == "free_text" | (profile$semantic_type == "identifier" & !small_list)
-  (type_sensitive | (personal & !classifier)) & profile$type_class %in% c("string", "integer", "numeric", "uuid")
+  valued <- profile$type_class %in% c("string", "integer", "numeric", "uuid")
+  reason <- rep(NA_character_, nrow(profile))
+  reason[profile$semantic_type == "identifier" & !small_list] <- "identifier"
+  reason[profile$semantic_type == "free_text" | (text_name & !classifier)] <- "free_text"
+  reason[personal & !classifier] <- "personal_data"
+  reason[!valued] <- NA_character_
+  reason
 }
+
+#' Which columns hold values that should not be copied into a profile?
+#' @noRd
+is_sensitive <- function(profile) !is.na(suppression_reason(profile))
