@@ -71,252 +71,384 @@
     
 <p>You have inherited a large database: several schemas, hundreds of
 tables, tens of thousands of columns, no documentation, and reports that
-disagree with each other. This article sets out the order of work from
-there to a database that is under control and useful to the business,
-which stages DBinventory covers, and what each stage needs from people
-rather than code.</p>
-<p>It revises the original plan (“From 700 undocumented tables to the
-first semantic model”), which named eleven artefacts in five stages. The
-artefacts stand; what has changed is that the first two exist, the key
-work has started, and the sequence can now be stated as questions the
-business is asking, in the order they can be answered.</p>
+disagree. This is the order of work from there to a database that is
+under control and useful to the business. Each phase answers one
+question and produces a small number of things; each has a gate that the
+next phase depends on.</p>
 <div class="section level2">
-<h2 id="three-principles">Three principles<a class="anchor" aria-label="anchor" href="#three-principles"></a>
+<h2 id="the-six-phases">The six phases<a class="anchor" aria-label="anchor" href="#the-six-phases"></a>
 </h2>
-<p><strong>Triage, do not document.</strong> Most of the tables are
-copies of each other at different levels of aggregation. Documentation
-effort goes only to the small canonical set, once it is known. Nothing
-is described by hand at scale.</p>
-<p><strong>Generate, then review.</strong> Profiles, duplicate clusters,
-candidate keys and first-draft descriptions can all be produced by code.
-A person reviews before anything carries a “reviewed” flag; nothing is
-asserted on the strength of a heuristic alone.</p>
-<p><strong>Record provenance, not rival definitions.</strong> Where a
-metric has several definitions in use, the register records each as
-observed (where, by whom, what it computes, when). Making disagreement
-visible and attributable is what people are asking for when they ask for
-numbers that agree.</p>
+<svg viewbox="0 0 960 300" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:960px;font-family:sans-serif"><defs><marker id="arrow" viewbox="0 0 10 10" refx="9" refy="5" markerwidth="8" markerheight="8" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#555"></path></marker></defs><g font-size="13" fill="#222"><!-- phase boxes --><g><rect x="10" y="60" width="140" height="90" rx="8" fill="#dbe7f3" stroke="#1f4e79"></rect><text x="80" y="85" text-anchor="middle" font-weight="bold">1. Know what
+exists</text><text x="80" y="108" text-anchor="middle" font-size="12">What is
+there,</text><text x="80" y="124" text-anchor="middle" font-size="12">how big, how
+fresh?</text></g><g><rect x="170" y="60" width="140" height="90" rx="8" fill="#dbe7f3" stroke="#1f4e79"></rect><text x="240" y="85" text-anchor="middle" font-weight="bold">2. Find the
+real tables</text><text x="240" y="108" text-anchor="middle" font-size="12">Which few
+tables are</text><text x="240" y="124" text-anchor="middle" font-size="12">the sources,
+not copies?</text></g><g><rect x="330" y="60" width="140" height="90" rx="8" fill="#dbe7f3" stroke="#1f4e79"></rect><text x="400" y="85" text-anchor="middle" font-weight="bold">3. Keys and
+structure</text><text x="400" y="108" text-anchor="middle" font-size="12">What is one
+row, and</text><text x="400" y="124" text-anchor="middle" font-size="12">how do tables
+join?</text></g><g><rect x="490" y="60" width="140" height="90" rx="8" fill="#dbe7f3" stroke="#1f4e79"></rect><text x="560" y="85" text-anchor="middle" font-weight="bold">4.
+Document</text><text x="560" y="108" text-anchor="middle" font-size="12">What does each
+table</text><text x="560" y="124" text-anchor="middle" font-size="12">and term
+mean?</text></g><g><rect x="650" y="60" width="140" height="90" rx="8" fill="#dbe7f3" stroke="#1f4e79"></rect><text x="720" y="85" text-anchor="middle" font-weight="bold">5.
+Control</text><text x="720" y="108" text-anchor="middle" font-size="12">Who owns it,
+what is</text><text x="720" y="124" text-anchor="middle" font-size="12">tested, how to
+change it?</text></g><g><rect x="810" y="60" width="140" height="90" rx="8" fill="#fbe5c8" stroke="#b36b00"></rect><text x="880" y="85" text-anchor="middle" font-weight="bold">6.
+Value</text><text x="880" y="108" text-anchor="middle" font-size="12">One agreed
+model the</text><text x="880" y="124" text-anchor="middle" font-size="12">business can
+query</text></g><!-- arrows --><g stroke="#555" stroke-width="2" marker-end="url(#arrow)"><line x1="150" y1="105" x2="168" y2="105"></line><line x1="310" y1="105" x2="328" y2="105"></line><line x1="470" y1="105" x2="488" y2="105"></line><line x1="630" y1="105" x2="648" y2="105"></line><line x1="790" y1="105" x2="808" y2="105"></line></g><!-- who --><g font-size="12" fill="#444"><text x="80" y="180" text-anchor="middle">Code</text><text x="240" y="180" text-anchor="middle">Code proposes,</text><text x="240" y="196" text-anchor="middle">owners confirm</text><text x="400" y="180" text-anchor="middle">Code tests,</text><text x="400" y="196" text-anchor="middle">team decides</text><text x="560" y="180" text-anchor="middle">Drafted by code,</text><text x="560" y="196" text-anchor="middle">reviewed by people</text><text x="720" y="180" text-anchor="middle">Three teams agree</text><text x="880" y="180" text-anchor="middle">Modeller</text></g><!-- gates --><g font-size="12" fill="#1f4e79"><text x="80" y="240" text-anchor="middle" font-style="italic">Gate:
+everything</text><text x="80" y="256" text-anchor="middle" font-style="italic">profiled</text><text x="240" y="240" text-anchor="middle" font-style="italic">Gate:
+canonical list</text><text x="240" y="256" text-anchor="middle" font-style="italic">agreed</text><text x="400" y="240" text-anchor="middle" font-style="italic">Gate:
+grain stated,</text><text x="400" y="256" text-anchor="middle" font-style="italic">keys
+tested</text><text x="560" y="240" text-anchor="middle" font-style="italic">Gate:
+dictionary</text><text x="560" y="256" text-anchor="middle" font-style="italic">reviewed</text><text x="720" y="240" text-anchor="middle" font-style="italic">Gate:
+stewards named,</text><text x="720" y="256" text-anchor="middle" font-style="italic">tests
+green</text></g><text x="10" y="30" font-size="12" fill="#444">Before
+any of this: a read-only login, and a home for the outputs that holds no
+patient data.</text></g></svg>
 </div>
 <div class="section level2">
-<h2 id="the-sequence">The sequence<a class="anchor" aria-label="anchor" href="#the-sequence"></a>
+<h2 id="how-the-problem-shrinks">How the problem shrinks<a class="anchor" aria-label="anchor" href="#how-the-problem-shrinks"></a>
 </h2>
-<p>Each phase shrinks the problem for the next: profiling shows which
-tables are copies, deduplication shows which deserve documentation,
-documentation states grain and keys, and the key register is what a
-semantic model is built from.</p>
-<table class="table">
-<colgroup>
-<col width="20%">
-<col width="20%">
-<col width="20%">
-<col width="20%">
-<col width="20%">
-</colgroup>
-<thead><tr class="header">
-<th>Phase</th>
-<th>Question it answers</th>
-<th>Artefacts (original numbering)</th>
-<th>Done by</th>
-<th>Gate to the next phase</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td>0. Access and safety</td>
-<td>Can we look without risk?</td>
-<td>Read-only account; a home for outputs that holds no patient
-data</td>
-<td>Code (built: value suppression is the default)</td>
-<td>Outputs reviewed as safe to commit</td>
-</tr>
-<tr class="even">
-<td>1. Know what exists</td>
-<td>What is there, how big, how fresh, what is empty?</td>
-<td>1 Inventory, 2 Column profile</td>
-<td>Code (built: <code><a href="../reference/inventory_run.html">inventory_run()</a></code>)</td>
-<td>Every table and column profiled; failures explained</td>
-</tr>
-<tr class="odd">
-<td>2. Collapse to the canonical set</td>
-<td>Which 5 to 10 per cent of tables are the real sources?</td>
-<td>3 Duplicate and lineage map, 4 Naming and classification
-standard</td>
-<td>Code proposes clusters; warehouse owners confirm</td>
-<td>Canonical list agreed with the owners</td>
-</tr>
-<tr class="even">
-<td>3. Keys and structure</td>
-<td>What is one row of each canonical table, and how do they join?</td>
-<td>8 Key register, 7 Conceptual entity model</td>
-<td>Code tests candidates (started: <code>pk_candidate</code>,
-<code>fk_candidate</code>); people decide</td>
-<td>Every canonical table has a reviewed grain and a tested key; core
-joins pass</td>
-</tr>
-<tr class="odd">
-<td>4. Document the canonical set</td>
-<td>What does each table and term mean?</td>
-<td>5 Data dictionary, 6 Business glossary</td>
-<td>Drafted from the profile, reviewed by people; glossary anchored to
-the NHS Data Dictionary</td>
-<td>Dictionary rows marked reviewed; glossary covers the first metrics’
-terms</td>
-</tr>
-<tr class="even">
-<td>5. Control</td>
-<td>Who owns what, what is tested, how do definitions change?</td>
-<td>10 Data quality baseline, 11 Stewardship and change control, 9
-Metric definition register</td>
-<td>Tests in code on a schedule; named stewards; register kept by the
-team</td>
-<td>A steward per canonical table; tests green; first metrics registered
-with provenance</td>
-</tr>
-<tr class="odd">
-<td>6. Value</td>
-<td>Can the business answer its own questions from certified data?</td>
-<td>Semantic model (entities from 7, relationships from 8, metrics from
-9, descriptions from 5 and 6); decommissioning of the duplicates</td>
-<td>Modeller, with the registers as input</td>
-<td>Certified datasets in use; duplicate tables retired</td>
-</tr>
-</tbody>
-</table>
-<div class="section level3">
-<h3 id="phase-0-access-and-safety">Phase 0: access and safety<a class="anchor" aria-label="anchor" href="#phase-0-access-and-safety"></a>
-</h3>
-<p>A read-only login with <code>SELECT</code> on the objects is enough;
-<code>INFORMATION_SCHEMA</code> is readable without system views or
-Query Store. The outputs of phase 1 are committed to a repository, so
-they must not carry patient data: the profile withholds literal values
-for identifiers, free text and personal-data column names by default,
-and the review of that output is the first gate.</p>
+<p>Each phase makes the next one smaller. Profiling shows which tables
+are copies; choosing the real ones leaves a few dozen to document;
+documenting those states the keys; the keys are what the model is built
+from.</p>
+<svg viewbox="0 0 960 230" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:960px;font-family:sans-serif"><g font-size="13" fill="#222"><polygon points="20,30 940,30 700,200 260,200" fill="#eef3f8" stroke="#1f4e79"></polygon><line x1="150" y1="30" x2="300" y2="200" stroke="#1f4e79" stroke-dasharray="4 4"></line><line x1="810" y1="30" x2="660" y2="200" stroke="#1f4e79" stroke-dasharray="4 4"></line><text x="480" y="60" text-anchor="middle" font-weight="bold">700 tables,
+28,000 columns</text><text x="480" y="80" text-anchor="middle" font-size="12">all profiled by
+code (phase 1)</text><text x="480" y="120" text-anchor="middle" font-weight="bold">40 to 80
+canonical tables</text><text x="480" y="140" text-anchor="middle" font-size="12">the rest
+marked as copies, aggregates or subsets (phase 2)</text><text x="480" y="175" text-anchor="middle" font-weight="bold">A dozen
+entities, their keys and joins</text><text x="480" y="192" text-anchor="middle" font-size="12">documented,
+tested and owned (phases 3 to 5)</text></g></svg><p>Documentation effort goes only to the canonical set. Nothing is
+described by hand at the scale of 28,000 columns.</p>
 </div>
+<div class="section level2">
+<h2 id="what-each-phase-produces">What each phase produces<a class="anchor" aria-label="anchor" href="#what-each-phase-produces"></a>
+</h2>
+<p>The artefacts, numbered as in the original plan. “Needs” is the
+artefact each one depends on, which is why the order is what it is.</p>
 <div class="section level3">
 <h3 id="phase-1-know-what-exists">Phase 1: know what exists<a class="anchor" aria-label="anchor" href="#phase-1-know-what-exists"></a>
 </h3>
-<p>One run of <code><a href="../reference/inventory_run.html">inventory_run()</a></code> against the warehouse gives
-every table and column with row counts, sizes, the newest datetime per
-table, and a profile of every column. This is the only phase that is
-purely mechanical, and it already answers questions the business asks:
-which tables are stale, which are empty, where the volume is, which
-columns hold personal data. Expect the first run to fail on a few
-objects (broken views, permissions); the run log says which, and the run
-resumes rather than restarts.</p>
+<p>Built: one run of <code><a href="../reference/inventory_run.html">inventory_run()</a></code> produces both.</p>
+<table style="width:100%;" class="table">
+<colgroup>
+<col width="16%">
+<col width="16%">
+<col width="16%">
+<col width="16%">
+<col width="16%">
+<col width="16%">
+</colgroup>
+<thead><tr class="header">
+<th>#</th>
+<th>Artefact</th>
+<th>What it holds</th>
+<th>Where it lives</th>
+<th>Who writes it</th>
+<th>Needs</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td><strong>Inventory</strong></td>
+<td>Every table and column: schema, name, type, row count, size, newest
+datetime, when profiled</td>
+<td>A SQLite store, exported as CSV or Parquet</td>
+<td>Code, re-run on a schedule</td>
+<td>Read access only</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td><strong>Column profile</strong></td>
+<td>Per column: null rate, distinct count, min and max, top values,
+inferred type (identifier, date, code, free text, flag), uniqueness,
+fingerprint</td>
+<td>Same store, one row per column</td>
+<td>Code</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<p>The first run already answers questions people ask: which tables are
+stale, which are empty, where the volume is, which columns hold personal
+data.</p>
 </div>
 <div class="section level3">
-<h3 id="phase-2-collapse-to-the-canonical-set">Phase 2: collapse to the canonical set<a class="anchor" aria-label="anchor" href="#phase-2-collapse-to-the-canonical-set"></a>
+<h3 id="phase-2-find-the-real-tables">Phase 2: find the real tables<a class="anchor" aria-label="anchor" href="#phase-2-find-the-real-tables"></a>
 </h3>
-<p>Columns with the same value fingerprint across tables are the same
-data stored again. Clustering tables by shared fingerprints, then
-picking the widest, freshest, lowest-grain member of each cluster with
-the fewest project-specific filters, is the work that turns hundreds of
-tables into tens. The candidate duplicate columns in the report are the
-seed; the next piece of code clusters whole tables and proposes a
-canonical member with a rationale. The classification standard (source,
-reference, derived, scratch; canonical, duplicate, deprecated;
-sensitivity classes) is written during this phase, because the
-categories only become clear from the data. This is also the first phase
-that needs the warehouse owners in the room: the canonical list is an
-assertion about which copy is right, and they know things the profile
-cannot show.</p>
+<table style="width:100%;" class="table">
+<colgroup>
+<col width="16%">
+<col width="16%">
+<col width="16%">
+<col width="16%">
+<col width="16%">
+<col width="16%">
+</colgroup>
+<thead><tr class="header">
+<th>#</th>
+<th>Artefact</th>
+<th>What it holds</th>
+<th>Where it lives</th>
+<th>Who writes it</th>
+<th>Needs</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>3</td>
+<td><strong>Duplicate and lineage map</strong></td>
+<td>Groups of tables and columns that hold the same thing; for each
+group the canonical member, the others marked copy, aggregate, filtered
+subset or unknown</td>
+<td>Same store, plus a short rationale per group</td>
+<td>Code proposes, a person confirms</td>
+<td>2</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td><strong>Naming and classification standard</strong></td>
+<td>Table classes (source, reference, derived, scratch); status values
+(canonical, duplicate, deprecated); sensitivity classes; naming rules
+for anything new</td>
+<td>Two pages of Markdown in the repository</td>
+<td>The team, agreed with the warehouse owners</td>
+<td>Written alongside 3</td>
+</tr>
+</tbody>
+</table>
+<p>This is the first phase that needs the warehouse owners in the room.
+The canonical list is a claim about which copy is right, and they know
+things the profile cannot show.</p>
 </div>
 <div class="section level3">
 <h3 id="phase-3-keys-and-structure">Phase 3: keys and structure<a class="anchor" aria-label="anchor" href="#phase-3-keys-and-structure"></a>
 </h3>
-<p>The profile already marks primary key candidates and proposes foreign
-keys from names, value sets, ranges and cardinality. Those are
-shortlists. The key register confirms them with match-rate tests (what
-share of a child’s values exist in the key) on the canonical set only,
-and records uniqueness, nulls and whether a key survives across
-normalisation levels. The <code>dm</code> package does this confirmation
-and then holds the result as a data model with an entity relationship
-diagram, so the register should be built on it rather than
-reimplemented. The conceptual entity model is deliberately small and
-independent of tables: the dozen things the hospital counts and how they
-nest. Grain, stated as “one row is one what”, is the single most
-important field, because every later decision about additivity and
-fan-out depends on it.</p>
+<p>Started: the profile marks primary key candidates and proposes
+foreign keys. Confirming them is the key register’s job.</p>
+<table style="width:100%;" class="table">
+<colgroup>
+<col width="16%">
+<col width="16%">
+<col width="16%">
+<col width="16%">
+<col width="16%">
+<col width="16%">
+</colgroup>
+<thead><tr class="header">
+<th>#</th>
+<th>Artefact</th>
+<th>What it holds</th>
+<th>Where it lives</th>
+<th>Who writes it</th>
+<th>Needs</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>7</td>
+<td><strong>Conceptual entity model</strong></td>
+<td>The dozen core entities (patient, pathway, referral, spell, episode,
+attendance, ward stay) and how they nest; the shared dimensions
+(patient, date, site, specialty, consultant, ward)</td>
+<td>One diagram plus a table pointing each entity at its canonical
+table</td>
+<td>The team</td>
+<td>5, 6 (begins alongside them)</td>
+</tr>
+<tr class="even">
+<td>8</td>
+<td><strong>Key register</strong></td>
+<td>Per entity: the identifier columns, every table carrying them, tests
+of uniqueness, nulls and match rate against the canonical table</td>
+<td>Table in the store, tests in code</td>
+<td>Code tests, a person interprets</td>
+<td>5, 7</td>
+</tr>
+</tbody>
+</table>
+<p>The one field that matters most is <strong>grain</strong>: one row is
+one what. Every later decision about what can be added up and which
+joins multiply rows depends on it.</p>
 </div>
 <div class="section level3">
 <h3 id="phase-4-document-the-canonical-set">Phase 4: document the canonical set<a class="anchor" aria-label="anchor" href="#phase-4-document-the-canonical-set"></a>
 </h3>
-<p>The data dictionary covers canonical tables only. Descriptions are
-drafted from the profile (name, type, sample values, neighbouring
-columns) and carry a status per row so drafted and reviewed text are
-never confused; the file shape borrows from the Open Data Contract
-Standard so it converts outward later. The glossary is separate from the
-dictionary because a term such as “referral” is carried by many columns
-and its meaning is a business matter: where a national definition exists
-in the NHS Data Dictionary, cite it and record the local deviation.</p>
+<table style="width:100%;" class="table">
+<colgroup>
+<col width="16%">
+<col width="16%">
+<col width="16%">
+<col width="16%">
+<col width="16%">
+<col width="16%">
+</colgroup>
+<thead><tr class="header">
+<th>#</th>
+<th>Artefact</th>
+<th>What it holds</th>
+<th>Where it lives</th>
+<th>Who writes it</th>
+<th>Needs</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>5</td>
+<td><strong>Data dictionary</strong></td>
+<td>For each canonical table: description, grain, keys, owner, source
+system, refresh cadence, known quirks; for each column: description,
+valid values, nullability, sensitivity</td>
+<td>One file per table, rendered to a browsable site; shape borrowed
+from the Open Data Contract Standard</td>
+<td>Drafted by code from the profile, reviewed by people; each row
+marked drafted or reviewed</td>
+<td>3, 4</td>
+</tr>
+<tr class="even">
+<td>6</td>
+<td><strong>Business glossary</strong></td>
+<td>Terms, not columns: referral, clock start, spell, episode,
+attendance, DNA, breach; each with a definition, the NHS Data Dictionary
+reference, local variations, and which columns carry it</td>
+<td>One entry per term</td>
+<td>The team drafts; the definitions team is invited to correct</td>
+<td>5 exposes the terms</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="section level3">
 <h3 id="phase-5-control">Phase 5: control<a class="anchor" aria-label="anchor" href="#phase-5-control"></a>
 </h3>
-<p>Control is three things, none of them large: automated tests on the
-canonical set (key uniqueness, referential integrity, freshness,
-row-count drift) run on a schedule with results logged; a named steward
-for each canonical table and glossary term, with a page saying how a
-change is proposed and logged; and the metric register, which records
-each definition as observed with provenance and never asserts a correct
-answer. The register is the artefact most likely to meet resistance, so
-its design matters: two definitions sit side by side with where each was
-seen.</p>
+<table style="width:100%;" class="table">
+<colgroup>
+<col width="16%">
+<col width="16%">
+<col width="16%">
+<col width="16%">
+<col width="16%">
+<col width="16%">
+</colgroup>
+<thead><tr class="header">
+<th>#</th>
+<th>Artefact</th>
+<th>What it holds</th>
+<th>Where it lives</th>
+<th>Who writes it</th>
+<th>Needs</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>9</td>
+<td><strong>Metric definition register</strong></td>
+<td>Each metric as observed: name, where seen, apparent numerator,
+denominator, filters, grain, owner, date observed, agreement or
+disagreement with other observations</td>
+<td>One file per metric; provenance required, SQL optional</td>
+<td>The team records; the definitions team owns the content</td>
+<td>6, 8</td>
+</tr>
+<tr class="even">
+<td>10</td>
+<td><strong>Data quality baseline</strong></td>
+<td>Automated tests on the canonical set: key uniqueness, referential
+integrity, freshness, row-count drift; run on a schedule, results
+logged</td>
+<td>Test suite in code</td>
+<td>Code</td>
+<td>8</td>
+</tr>
+<tr class="odd">
+<td>11</td>
+<td><strong>Stewardship and change control</strong></td>
+<td>Who owns each canonical table and term; how a change is proposed,
+reviewed and logged; what “certified” means and who grants it</td>
+<td>One page plus a change log</td>
+<td>Agreed between the three teams</td>
+<td>4</td>
+</tr>
+</tbody>
+</table>
+<p>The metric register records what was seen and never asserts a correct
+answer. Two definitions of the same metric sit side by side with where
+each was seen. That is what people are asking for when they ask for
+numbers that agree.</p>
 </div>
 <div class="section level3">
 <h3 id="phase-6-value">Phase 6: value<a class="anchor" aria-label="anchor" href="#phase-6-value"></a>
 </h3>
-<p>With the gates passed, the semantic model is mechanical: entities
-from the conceptual model, relationships from the key register,
-dimensions and descriptions from the dictionary, metrics from the
-register. Which engine compiles it is an implementation choice for then.
-The other half of the value is subtraction: the hundreds of duplicate
-tables can be retired with confidence, because the canonical set is
-known, tested and owned.</p>
+<p>With the gates passed, the semantic model is assembled rather than
+invented: entities from 7, relationships from 8, dimensions and
+descriptions from 5 and 6, metrics from 9. The business queries one
+agreed model; the duplicate tables can be retired because the canonical
+set is known, tested and owned.</p>
 </div>
 </div>
 <div class="section level2">
-<h2 id="what-dbinventory-does-and-what-comes-next">What DBinventory does and what comes next<a class="anchor" aria-label="anchor" href="#what-dbinventory-does-and-what-comes-next"></a>
+<h2 id="how-the-artefacts-depend-on-each-other">How the artefacts depend on each other<a class="anchor" aria-label="anchor" href="#how-the-artefacts-depend-on-each-other"></a>
 </h2>
-<p>Built: phases 0 and 1 in full (inventory, profile, suppression,
-resumable store, exports, report), and the shortlist half of phase 3
-(<code>pk_candidate</code>, <code>fk_candidate</code> with evidence and
-confidence).</p>
-<p>Next, in order:</p>
-<ol style="list-style-type: decimal">
-<li>
-<strong>Table clustering</strong> for phase 2: cluster tables by
-shared fingerprints, classify each member (copy, aggregate, filtered
-subset, wider derivative, unknown), propose a canonical member with a
-rationale, and emit the list for the owners to confirm.</li>
-<li>
-<strong>Key register</strong> for phase 3: confirm the shortlisted
-keys with match-rate tests, through <code>dm</code>, and record the
-results per entity.</li>
-<li>
-<strong>Incremental re-profiling</strong>: re-run only tables whose
-row count or newest datetime has changed, so the inventory can run on a
-schedule.</li>
-<li>
-<strong>Dictionary drafts</strong> for phase 4: a first-draft
-description per canonical column from the profile, with a status field,
-in the ODCS shape.</li>
-</ol>
-<p>Phases 5 and 6 are mostly people and pages rather than package
-features; the package’s job there is to keep the inventory and tests
-current so that what the stewards sign off stays true.</p>
+<svg viewbox="0 0 960 250" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:960px;font-family:sans-serif"><defs><marker id="arrow2" viewbox="0 0 10 10" refx="9" refy="5" markerwidth="7" markerheight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#555"></path></marker></defs><g font-size="12" fill="#222"><g><rect x="10" y="100" width="110" height="40" rx="6" fill="#dbe7f3" stroke="#1f4e79"></rect><text x="65" y="124" text-anchor="middle">1
+Inventory</text><rect x="150" y="100" width="110" height="40" rx="6" fill="#dbe7f3" stroke="#1f4e79"></rect><text x="205" y="124" text-anchor="middle">2
+Profile</text><rect x="290" y="100" width="110" height="40" rx="6" fill="#dbe7f3" stroke="#1f4e79"></rect><text x="345" y="124" text-anchor="middle">3
+Duplicate map</text><rect x="290" y="170" width="110" height="40" rx="6" fill="#eeeeee" stroke="#777"></rect><text x="345" y="194" text-anchor="middle">4
+Standard</text><rect x="430" y="100" width="110" height="40" rx="6" fill="#dbe7f3" stroke="#1f4e79"></rect><text x="485" y="124" text-anchor="middle">5
+Dictionary</text><rect x="430" y="30" width="110" height="40" rx="6" fill="#dbe7f3" stroke="#1f4e79"></rect><text x="485" y="54" text-anchor="middle">6
+Glossary</text><rect x="570" y="100" width="110" height="40" rx="6" fill="#dbe7f3" stroke="#1f4e79"></rect><text x="625" y="124" text-anchor="middle">7
+Entity model</text><rect x="570" y="170" width="110" height="40" rx="6" fill="#dbe7f3" stroke="#1f4e79"></rect><text x="625" y="194" text-anchor="middle">8
+Key register</text><rect x="710" y="30" width="110" height="40" rx="6" fill="#dbe7f3" stroke="#1f4e79"></rect><text x="765" y="54" text-anchor="middle">9
+Metric register</text><rect x="710" y="170" width="110" height="40" rx="6" fill="#dbe7f3" stroke="#1f4e79"></rect><text x="765" y="194" text-anchor="middle">10
+Quality tests</text><rect x="430" y="190" width="110" height="40" rx="6" fill="#eeeeee" stroke="#777"></rect><text x="485" y="214" text-anchor="middle">11
+Stewardship</text><rect x="850" y="100" width="100" height="40" rx="6" fill="#fbe5c8" stroke="#b36b00"></rect><text x="900" y="124" text-anchor="middle">Semantic
+model</text></g><g stroke="#555" stroke-width="1.5" fill="none" marker-end="url(#arrow2)"><line x1="120" y1="120" x2="148" y2="120"></line><line x1="260" y1="120" x2="288" y2="120"></line><line x1="400" y1="120" x2="428" y2="120"></line><line x1="345" y1="170" x2="345" y2="142"></line><line x1="400" y1="190" x2="428" y2="200"></line><line x1="485" y1="100" x2="485" y2="72"></line><line x1="540" y1="120" x2="568" y2="120"></line><line x1="540" y1="130" x2="568" y2="180"></line><line x1="625" y1="142" x2="625" y2="168"></line><line x1="540" y1="50" x2="708" y2="50"></line><line x1="680" y1="180" x2="708" y2="190"></line><line x1="680" y1="175" x2="720" y2="72"></line><line x1="680" y1="120" x2="848" y2="120"></line><line x1="820" y1="60" x2="860" y2="98"></line><line x1="820" y1="180" x2="860" y2="142"></line></g><text x="10" y="240" font-size="12" fill="#444">Blue: produced mostly by
+code. Grey: written by people. Orange: the goal.</text></g></svg>
 </div>
 <div class="section level2">
-<h2 id="ready-to-start-semantic-modelling-when">Ready to start semantic modelling when<a class="anchor" aria-label="anchor" href="#ready-to-start-semantic-modelling-when"></a>
+<h2 id="three-rules-that-run-through-all-of-it">Three rules that run through all of it<a class="anchor" aria-label="anchor" href="#three-rules-that-run-through-all-of-it"></a>
 </h2>
 <ul>
-<li>A canonical table exists for every core entity and is agreed with
-the warehouse owners.</li>
+<li>
+<strong>Triage, do not document.</strong> Find the few real sources;
+mark the rest as copies.</li>
+<li>
+<strong>Generate, then review.</strong> Code drafts; a person
+approves before anything is called reviewed.</li>
+<li>
+<strong>Record what was seen, not who is right.</strong> Definitions
+are logged with their provenance; disagreement is made visible, not
+settled by the register.</li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="where-we-are">Where we are<a class="anchor" aria-label="anchor" href="#where-we-are"></a>
+</h2>
+<ul>
+<li>
+<strong>Built</strong>: phase 1 in full, and the candidate half of
+phase 3 (primary and foreign key candidates with evidence and
+confidence).</li>
+<li>
+<strong>Next</strong>: table clustering with a proposed canonical
+member (phase 2), then confirming the keys with match-rate tests (phase
+3), then dictionary drafts from the profile (phase 4).</li>
+<li>
+<strong>Not code</strong>: the standard, the glossary, the metric
+register and stewardship are pages and agreements between teams. The
+package keeps the inventory and tests current so that what the stewards
+sign off stays true.</li>
+</ul>
+</div>
+<div class="section level2">
+<h2 id="ready-for-the-semantic-model-when">Ready for the semantic model when<a class="anchor" aria-label="anchor" href="#ready-for-the-semantic-model-when"></a>
+</h2>
+<ul>
+<li>A canonical table exists for every core entity, agreed with the
+warehouse owners.</li>
 <li>Every canonical table has a reviewed grain and a tested primary
 key.</li>
 <li>Joins between core entities are in the key register with passing
-referential tests.</li>
-<li>The glossary covers the terms the first metrics will use.</li>
-<li>The metric register holds at least the first few metrics with
+tests.</li>
+<li>The glossary covers the terms the first metrics use.</li>
+<li>The metric register holds the first few metrics with
 provenance.</li>
 <li>Someone is named as steward for each canonical table.</li>
 </ul>
