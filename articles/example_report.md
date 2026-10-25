@@ -13,8 +13,8 @@ on the repository’s Actions tab, run by hand.
 
 | Report | Dataset | Sampling threshold | Tables | Tables sampled | Columns | Rows in total | Phases 2 and 3 | Run time | Rendered |
 |:---|:---|:---|---:|---:|---:|:---|:---|:---|:---|
-| sampled | full set | 1,000,000 rows | 45 | 7 | 518 | 54,368,976 | Phase 1 only: this was a sampled check, where not every row of the largest tables was reviewed. The full check below shows phases 2 and 3. | 23 s | 2026-10-25 12:08 UTC |
-| full | full set | none | 45 | 0 | 518 | 54,368,976 | Shown: 90 foreign key candidates and the table clusters | 29 s | 2026-10-25 12:08 UTC |
+| sampled | full set | 1,000,000 rows | 45 | 7 | 518 | 54,368,976 | Phase 1 only: this was a sampled check, where not every row of the largest tables was reviewed. The full check below shows phases 2 and 3. | 23 s | 2026-10-25 12:14 UTC |
+| full | full set | none | 45 | 0 | 518 | 54,368,976 | Shown: 90 foreign key candidates and the table clusters | 28 s | 2026-10-25 12:14 UTC |
 
 ## Sampled report
 
@@ -27,7 +27,7 @@ clustering and keys.
 
 [Open the sampled
 report](https://thomuk.github.io/DBinventory/example-report-sampled.md)
-(opens in a new tab, 2.3 MB, rendered 2026-10-25 12:08 UTC)
+(opens in a new tab, 2.3 MB, rendered 2026-10-25 12:14 UTC)
 
 ## Full report
 
@@ -40,7 +40,7 @@ it is usually the quicker one.
 
 [Open the full
 report](https://thomuk.github.io/DBinventory/example-report-full.md)
-(opens in a new tab, 2.4 MB, rendered 2026-10-25 12:08 UTC)
+(opens in a new tab, 2.4 MB, rendered 2026-10-25 12:14 UTC)
 
 To make one for your own database:
 
