@@ -35,14 +35,38 @@ if (is.null(profile)) profile <- DBinventory:::empty_profile()
 if (is.null(log)) log <- data.frame(status = character())
 n_sampled <- if (nrow(profile) > 0) length(unique(profile$table_name[profile$sampled %in% TRUE])) else 0
 full_run <- n_sampled == 0
+sampled_svg <- '
+<svg viewBox="0 0 960 215" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:960px;font-family:sans-serif;margin-top:12px">
+  <g font-size="12" fill="#ffffff">
+    <text x="230" y="20" text-anchor="middle" font-weight="bold">Sampled check (this report)</text>
+    <rect x="40" y="35" width="90" height="140" rx="4" fill="none" stroke="#ffffff"/>
+    <rect x="40" y="95" width="90" height="25" fill="#dbe7f3" stroke="#ffffff"/>
+    <text x="85" y="192" text-anchor="middle" font-size="11">large table:</text>
+    <text x="85" y="206" text-anchor="middle" font-size="11">a band of rows reviewed</text>
+    <rect x="160" y="125" width="60" height="50" rx="4" fill="#dbe7f3" stroke="#ffffff"/>
+    <rect x="240" y="135" width="60" height="40" rx="4" fill="#dbe7f3" stroke="#ffffff"/>
+    <rect x="320" y="145" width="60" height="30" rx="4" fill="#dbe7f3" stroke="#ffffff"/>
+    <text x="270" y="192" text-anchor="middle" font-size="11">small tables: every row reviewed</text>
+    <text x="690" y="20" text-anchor="middle" font-weight="bold">Full check (needed for phases 2 and 3)</text>
+    <rect x="500" y="35" width="90" height="140" rx="4" fill="#dbe7f3" stroke="#ffffff"/>
+    <text x="545" y="192" text-anchor="middle" font-size="11">large table:</text>
+    <text x="545" y="206" text-anchor="middle" font-size="11">every row reviewed</text>
+    <rect x="620" y="125" width="60" height="50" rx="4" fill="#dbe7f3" stroke="#ffffff"/>
+    <rect x="700" y="135" width="60" height="40" rx="4" fill="#dbe7f3" stroke="#ffffff"/>
+    <rect x="780" y="145" width="60" height="30" rx="4" fill="#dbe7f3" stroke="#ffffff"/>
+    <text x="730" y="192" text-anchor="middle" font-size="11">small tables: every row reviewed</text>
+    <rect x="810" y="100" width="20" height="14" fill="#dbe7f3" stroke="#ffffff"/>
+    <text x="835" y="111" font-size="11">= rows reviewed</text>
+  </g>
+</svg>'
 sampled_note <- function(phase) {
   cat(sprintf(paste0(
     "<div class=\"alert alert-info\"><strong>Phase 1 was completed on a sampled database check</strong>, where not every row ",
     "was reviewed for the largest tables (%d of %d tables were sampled). Phase 1 is complete and can be used as it is. ",
     "%s needs every row to be reviewed, so it is not shown here. To see phase 2 onwards, complete a full (not sampled) ",
     "database check: run <code>inventory_run()</code> again with <code>sample_rows = Inf</code>, which profiles every row ",
-    "of every table, then render this report from that run.</div>\n\n"),
-    n_sampled, length(unique(paste(profile$table_schema, profile$table_name))), phase))
+    "of every table, then render this report from that run.%s</div>\n\n"),
+    n_sampled, length(unique(paste(profile$table_schema, profile$table_name))), phase, sampled_svg))
 }
 has_dt <- requireNamespace("DT", quietly = TRUE)
 library(ggplot2)
@@ -431,6 +455,56 @@ if (nrow(profile) > 0) {
 
 ```{r phase3-gate, results="asis"}
 if (!full_run) sampled_note("Key inference")
+```
+
+```{r phase3-intro, results="asis"}
+cat('
+Keys are how tables join. A **primary key candidate** is a column that identifies each row: every value is different and none is missing. A **foreign key candidate** is a column whose values point at some other table\'s key: a patient identifier repeated across admissions, say. Both are proposed from the profile; confirming them is the key register\'s job in the next stage.
+
+<svg viewBox="0 0 960 230" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:960px;font-family:sans-serif">
+  <defs><marker id="p3arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1f4e79"/></marker></defs>
+  <g font-size="12" fill="#222">
+    <!-- primary key -->
+    <text x="140" y="22" text-anchor="middle" font-weight="bold" fill="#1f4e79">Primary key candidate</text>
+    <rect x="40" y="35" width="200" height="140" rx="6" fill="#dbe7f3" stroke="#1f4e79"/>
+    <text x="140" y="55" text-anchor="middle" font-weight="bold">Patients</text>
+    <g font-family="monospace" font-size="12">
+      <text x="55" y="80">patient_id   name</text>
+      <text x="55" y="100">P001         Ada</text>
+      <text x="55" y="120">P002         Ben</text>
+      <text x="55" y="140">P003         Cy</text>
+      <text x="55" y="160">P004         Di</text>
+    </g>
+    <rect x="50" y="86" width="78" height="80" rx="3" fill="none" stroke="#b36b00" stroke-width="2"/>
+    <text x="140" y="200" text-anchor="middle" font-size="11">every value different, none missing</text>
+    <!-- foreign key -->
+    <text x="620" y="22" text-anchor="middle" font-weight="bold" fill="#1f4e79">Foreign key candidate</text>
+    <rect x="400" y="35" width="220" height="140" rx="6" fill="#dbe7f3" stroke="#1f4e79"/>
+    <text x="510" y="55" text-anchor="middle" font-weight="bold">Admissions</text>
+    <g font-family="monospace" font-size="12">
+      <text x="415" y="80">spell_id  patient_id</text>
+      <text x="415" y="100">S1        P002</text>
+      <text x="415" y="120">S2        P001</text>
+      <text x="415" y="140">S3        P002</text>
+      <text x="415" y="160">S4        P004</text>
+    </g>
+    <rect x="490" y="86" width="56" height="80" rx="3" fill="none" stroke="#b36b00" stroke-width="2"/>
+    <path d="M 490 126 C 350 126, 300 126, 245 126" fill="none" stroke="#1f4e79" stroke-width="2" marker-end="url(#p3arrow)"/>
+    <text x="320" y="118" text-anchor="middle" font-size="11" fill="#1f4e79">each value is one of the keys</text>
+    <text x="510" y="200" text-anchor="middle" font-size="11">values repeat, and all of them exist in Patients</text>
+    <!-- evidence -->
+    <rect x="660" y="35" width="280" height="140" rx="6" fill="#f5f5f5" stroke="#999"/>
+    <text x="800" y="55" text-anchor="middle" font-weight="bold">What the profile can and cannot see</text>
+    <text x="675" y="80" font-size="11">Can see: matching names, value sets, ranges,</text>
+    <text x="675" y="96" font-size="11">how many distinct values, value shapes.</text>
+    <text x="675" y="122" font-size="11">Cannot see: whether every admission value</text>
+    <text x="675" y="138" font-size="11">really exists in Patients. That match-rate</text>
+    <text x="675" y="154" font-size="11">test is the key register (next stage).</text>
+    <text x="800" y="200" text-anchor="middle" font-size="11">so these are candidates with a confidence score</text>
+  </g>
+</svg>
+
+')
 ```
 
 ### Primary key candidates
