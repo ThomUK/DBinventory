@@ -37,9 +37,11 @@ n_sampled <- if (nrow(profile) > 0) length(unique(profile$table_name[profile$sam
 full_run <- n_sampled == 0
 sampled_note <- function(phase) {
   cat(sprintf(paste0(
-    "<div class=\"alert alert-info\"><strong>Not computed: this report comes from a sampled run.</strong> ",
-    "%d of %d tables were profiled on a sample of their rows. %s needs exact statistics, so it is only ",
-    "produced by a full run: re-run with <code>sample_rows = Inf</code>.</div>\n\n"),
+    "<div class=\"alert alert-info\"><strong>Phase 1 was completed on a sampled database check</strong>, where not every row ",
+    "was reviewed for the largest tables (%d of %d tables were sampled). Phase 1 is complete and can be used as it is. ",
+    "%s needs every row to be reviewed, so it is not shown here. To see phase 2 onwards, complete a full (not sampled) ",
+    "database check: run <code>inventory_run()</code> again with <code>sample_rows = Inf</code>, which profiles every row ",
+    "of every table, then render this report from that run.</div>\n\n"),
     n_sampled, length(unique(paste(profile$table_schema, profile$table_name))), phase))
 }
 has_dt <- requireNamespace("DT", quietly = TRUE)
@@ -408,7 +410,7 @@ if (!is.null(pairs) && nrow(pairs) > 0) {
 ### Candidate duplicate columns
 
 ```{r dup-gate, results="asis"}
-if (!full_run) cat("Not computed on a sampled run.\n\n")
+if (!full_run) cat("Shown after a full (not sampled) database check.\n\n")
 ```
 
 Groups of columns in different tables whose contents look the same: same type class, same order of magnitude of distinct values, same minimum and maximum and the same most frequent values, hashed together as a fingerprint. Each row is one group, listing every column in it; a group spanning a source table and a derived table is probably a copy, and columns matching under different names are the ones worth checking first. It is a starting point for the duplicate map, not a verdict: value-overlap tests confirm or reject it in the next stage.

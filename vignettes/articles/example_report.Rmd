@@ -29,7 +29,9 @@ if (is.null(runs) || nrow(runs) == 0) {
     `Sampling threshold` = ifelse(is.infinite(runs$sample_rows), "none", paste(fmt(runs$sample_rows), "rows")),
     Tables = runs$tables, `Tables sampled` = runs$tables_sampled, Columns = runs$columns,
     `Rows in total` = fmt(runs$rows),
-    `Phases 2 and 3` = ifelse(runs$tables_sampled > 0, "not computed (sampled run)", paste(runs$fk_candidates, "foreign key candidates")),
+    `Phases 2 and 3` = ifelse(runs$tables_sampled > 0,
+      "Phase 1 only: this was a sampled check, where not every row of the largest tables was reviewed. The full check below shows phases 2 and 3.",
+      paste("Shown:", runs$fk_candidates, "foreign key candidates and the table clusters")),
     `Run time` = ifelse(runs$seconds >= 60, sprintf("%.0f min", runs$seconds / 60), paste(runs$seconds, "s")),
     Rendered = runs$rendered_at, check.names = FALSE
   )
