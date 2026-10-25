@@ -1,3 +1,7 @@
+# DBinventory 0.1.8
+
+* Report: the key-candidate diagram lays its columns out at fixed positions, so they no longer collapse together.
+
 # DBinventory 0.1.7
 
 * Report: a diagram explains freshness (the newest date a table holds, and tables placed on a timeline) above the phase 1 freshness chart.

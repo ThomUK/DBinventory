@@ -511,27 +511,27 @@ Keys are how tables join. A **primary key candidate** is a column that identifie
     <rect x="40" y="35" width="200" height="140" rx="6" fill="#dbe7f3" stroke="#1f4e79"/>
     <text x="140" y="55" text-anchor="middle" font-weight="bold">Patients</text>
     <g font-family="monospace" font-size="12">
-      <text x="55" y="80">patient_id   name</text>
-      <text x="55" y="100">P001         Ada</text>
-      <text x="55" y="120">P002         Ben</text>
-      <text x="55" y="140">P003         Cy</text>
-      <text x="55" y="160">P004         Di</text>
+      <text x="55" y="80">patient_id</text><text x="150" y="80">name</text>
+      <text x="55" y="100">P001</text><text x="150" y="100">Ada</text>
+      <text x="55" y="120">P002</text><text x="150" y="120">Ben</text>
+      <text x="55" y="140">P003</text><text x="150" y="140">Cy</text>
+      <text x="55" y="160">P004</text><text x="150" y="160">Di</text>
     </g>
-    <rect x="50" y="86" width="78" height="80" rx="3" fill="none" stroke="#b36b00" stroke-width="2"/>
+    <rect x="49" y="66" width="88" height="102" rx="3" fill="none" stroke="#b36b00" stroke-width="2"/>
     <text x="140" y="200" text-anchor="middle" font-size="11">every value different, none missing</text>
     <!-- foreign key -->
     <text x="620" y="22" text-anchor="middle" font-weight="bold" fill="#1f4e79">Foreign key candidate</text>
     <rect x="400" y="35" width="220" height="140" rx="6" fill="#dbe7f3" stroke="#1f4e79"/>
     <text x="510" y="55" text-anchor="middle" font-weight="bold">Admissions</text>
     <g font-family="monospace" font-size="12">
-      <text x="415" y="80">spell_id  patient_id</text>
-      <text x="415" y="100">S1        P002</text>
-      <text x="415" y="120">S2        P001</text>
-      <text x="415" y="140">S3        P002</text>
-      <text x="415" y="160">S4        P004</text>
+      <text x="415" y="80">spell_id</text><text x="500" y="80">patient_id</text>
+      <text x="415" y="100">S1</text><text x="500" y="100">P002</text>
+      <text x="415" y="120">S2</text><text x="500" y="120">P001</text>
+      <text x="415" y="140">S3</text><text x="500" y="140">P002</text>
+      <text x="415" y="160">S4</text><text x="500" y="160">P004</text>
     </g>
-    <rect x="490" y="86" width="56" height="80" rx="3" fill="none" stroke="#b36b00" stroke-width="2"/>
-    <path d="M 490 126 C 350 126, 300 126, 245 126" fill="none" stroke="#1f4e79" stroke-width="2" marker-end="url(#p3arrow)"/>
+    <rect x="494" y="66" width="88" height="102" rx="3" fill="none" stroke="#b36b00" stroke-width="2"/>
+    <path d="M 494 126 C 350 126, 300 126, 245 126" fill="none" stroke="#1f4e79" stroke-width="2" marker-end="url(#p3arrow)"/>
     <text x="320" y="118" text-anchor="middle" font-size="11" fill="#1f4e79">each value is one of the keys</text>
     <text x="510" y="200" text-anchor="middle" font-size="11">values repeat, and all of them exist in Patients</text>
     <!-- evidence -->
