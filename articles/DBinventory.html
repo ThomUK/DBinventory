@@ -74,7 +74,12 @@ it</em> (the inventory) and <em>what does each column hold</em> (the
 column profile). This article walks through both on the 5% sample of the
 <a href="https://github.com/ThomUK/synthetic-hospital-data" class="external-link">Fake NHS
 Trust synthetic dataset</a>, read through its <code>fakehospdata</code>
-package: 53 tables in five schemas, about 3.6 million rows.</p>
+package: about 3.6 million rows in the <code>layer1</code>,
+<code>reference</code>, <code>derived</code> and <code>aggregate</code>
+schemas. Its <code>answers</code> schema (the mess log and the truth
+tables the derived layer is marked against) is the dataset’s answer key
+rather than part of the trust’s warehouse, so the examples exclude
+it.</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/ThomUK/DBinventory" class="external-link">DBinventory</a></span><span class="op">)</span></span></code></pre></div>
 <div class="section level2">
@@ -89,7 +94,7 @@ cache and returns a DuckDB connection of views, which
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">con</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/db_connect.html">db_connect</a></span><span class="op">(</span><span class="fu">fakehospdata</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/fakehospdata/man/fh_connect.html" class="external-link">fh_connect</a></span><span class="op">(</span><span class="st">"sample"</span>, quiet <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; duckdb keeps downloaded extensions and secrets in a temporary directory:</span></span>
-<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> /tmp/RtmpJK4nQc/duckdb</span></span>
+<span><span class="co">#&gt; <span style="color: #0000BB;">ℹ</span> /tmp/RtmpRV9wX8/duckdb</span></span>
 <span><span class="co">#&gt; This is removed when the R session ends.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Extensions are re-downloaded each session.</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">•</span> Secrets are lost.</span></span>

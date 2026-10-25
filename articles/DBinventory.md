@@ -5,8 +5,11 @@ access to and no documentation for: *what is in it* (the inventory) and
 *what does each column hold* (the column profile). This article walks
 through both on the 5% sample of the [Fake NHS Trust synthetic
 dataset](https://github.com/ThomUK/synthetic-hospital-data), read
-through its `fakehospdata` package: 53 tables in five schemas, about 3.6
-million rows.
+through its `fakehospdata` package: about 3.6 million rows in the
+`layer1`, `reference`, `derived` and `aggregate` schemas. Its `answers`
+schema (the mess log and the truth tables the derived layer is marked
+against) is the dataset’s answer key rather than part of the trust’s
+warehouse, so the examples exclude it.
 
 ``` r
 
@@ -29,7 +32,7 @@ passes through.
 
 con <- db_connect(fakehospdata::fh_connect("sample", quiet = TRUE))
 #> duckdb keeps downloaded extensions and secrets in a temporary directory:
-#> ℹ /tmp/RtmpJK4nQc/duckdb
+#> ℹ /tmp/RtmpRV9wX8/duckdb
 #> This is removed when the R session ends.
 #> • Extensions are re-downloaded each session.
 #> • Secrets are lost.
