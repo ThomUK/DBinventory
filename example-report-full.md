@@ -4,12 +4,17 @@
 
 Published
 
-October 24, 2026
+October 25, 2026
+
+Every table below can be filtered: type in the box above a column, pick
+from its dropdown, or drag the slider under a number column; the search
+box matches any column. The CSV button downloads what is currently
+shown.
 
 **52** tables and views, **559** columns, **60,282,771** rows in total.
-Profiled 559 columns in 52 tables in 16 seconds.
+Profiled 559 columns in 52 tables in 20 seconds.
 
-Last run started 2026-10-24 20:46:55 UTC against `duckdb_connection`
+Last run started 2026-10-25 08:44:57 UTC against `duckdb_connection`
 (duckdb dialect), sampling tables above Inf rows, top 10 values per
 column, literal values suppressed for identifiers, free text and
 personal-data names.

@@ -9,8 +9,8 @@
     "rows": 60282771,
     "tables_sampled": 8,
     "fk_candidates": 104,
-    "seconds": 65,
-    "rendered_at": "2026-10-24 20:46 UTC",
+    "seconds": 20,
+    "rendered_at": "2026-10-25 08:44 UTC",
     "size_mb": 2.3
   },
   {
@@ -23,8 +23,8 @@
     "rows": 60282771,
     "tables_sampled": 0,
     "fk_candidates": 101,
-    "seconds": 17,
-    "rendered_at": "2026-10-24 20:47 UTC",
+    "seconds": 21,
+    "rendered_at": "2026-10-25 08:45 UTC",
     "size_mb": 2.3
   }
 ]
