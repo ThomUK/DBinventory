@@ -78,3 +78,34 @@ test_that("the report title is prefixed with the organisation", {
   render_report(store, out, engine = "rmarkdown", organisation = "Another Trust")
   expect_match(paste(readLines(out, warn = FALSE), collapse = "\n"), "Another Trust: Database inventory", fixed = TRUE)
 })
+
+test_that("resuming with sample_rows = Inf re-profiles tables an earlier run sampled", {
+  con <- fixture_con()
+  store <- withr::local_tempfile(fileext = ".sqlite")
+  inv <- db_inventory(con, include = "pas_patients|pas_referrals", progress = FALSE)
+  first <- db_profile(con, inv, sample_rows = 50, store = store, progress = FALSE)
+  expect_true(all(first$sampled))
+  expect_message(
+    second <- db_profile(con, inv, sample_rows = Inf, store = store, progress = FALSE),
+    "Re-profiling 2 tables"
+  )
+  expect_false(any(second$sampled))
+  st <- store_open(store)
+  stored <- store_read(st, "column_profile")
+  store_close(st)
+  expect_false(any(stored$sampled))
+  expect_equal(nrow(stored), nrow(inv$columns))   # the sampled rows were replaced, not duplicated
+  # and a third run with the same settings skips them
+  expect_message(db_profile(con, inv, sample_rows = Inf, store = store, progress = FALSE), "2 tables already profiled")
+})
+
+test_that("appending to a store written without a column adds that column", {
+  store <- withr::local_tempfile(fileext = ".sqlite")
+  st <- store_open(store)
+  store_write(st, "column_profile", data.frame(table_schema = "a", table_name = "t", column_name = "x", stringsAsFactors = FALSE))
+  store_write(st, "column_profile", data.frame(table_schema = "a", table_name = "u", column_name = "y", extra = 1, stringsAsFactors = FALSE), append = TRUE)
+  out <- store_read(st, "column_profile")
+  store_close(st)
+  expect_equal(nrow(out), 2)
+  expect_equal(out$extra, c(NA, 1))
+})

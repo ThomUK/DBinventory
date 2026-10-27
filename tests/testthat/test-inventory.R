@@ -58,3 +58,17 @@ test_that("a failing table does not stop the run", {
   expect_true(is.na(tabs$row_count[tabs$table_name == "broken"]))
   expect_equal(tabs$row_count[tabs$table_name == "toy"], 30)
 })
+
+test_that("freshness prefers a plausible newest date over a far-future placeholder", {
+  con <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
+  withr::defer(DBI::dbDisconnect(con))
+  DBI::dbExecute(con, "CREATE TABLE ev (id INTEGER, seen DATE, valid_to DATE)")
+  DBI::dbExecute(con, "INSERT INTO ev VALUES (1, '2024-03-01', '2099-12-31'), (2, '2024-05-09', '9999-12-31')")
+  DBI::dbExecute(con, "CREATE TABLE only_future (id INTEGER, valid_to DATE)")
+  DBI::dbExecute(con, "INSERT INTO only_future VALUES (1, '2099-12-31')")
+  tabs <- db_tables(con)
+  fr <- db_freshness(con, tabs, progress = FALSE)
+  expect_equal(fr$newest_datetime[fr$table_name == "ev"], "2024-05-09")
+  expect_equal(fr$newest_datetime_column[fr$table_name == "ev"], "seen")
+  expect_equal(fr$newest_datetime[fr$table_name == "only_future"], "2099-12-31")
+})

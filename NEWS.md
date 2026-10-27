@@ -1,3 +1,11 @@
+# DBinventory 0.1.12
+
+* Resuming into a store from a sampled run with `sample_rows = Inf` now re-profiles the tables that were sampled, so phases 2 and 3 run; before, the sampled profiles were kept and the deeper phases were skipped without explanation.
+* Freshness prefers the newest date up to a year ahead of today, so a column of placeholder dates (2099-12-31) no longer hides a table's real activity. The report bins the freshness chart by month, quarter or year to suit the span, and lists tables whose only dates are far in the future instead of stretching the axis to them.
+* Report: the page uses the full width of the screen.
+* A status line says the report is rendering, which can take a minute or two, so the pause after "Run complete" is explained.
+* Appending to a store written by an earlier version adds any new profile columns instead of failing.
+
 # DBinventory 0.1.11
 
 * RSQLite is now a required dependency (it was suggested), so the results store always works after `install_github()`.

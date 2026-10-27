@@ -93,7 +93,8 @@ inventory_run <- function(source, store = "db_inventory.sqlite", export_dir = NU
   if (!is.null(profile) && nrow(profile) > 0) {
     profile <- structure(profile, class = c("column_profile", class(profile)))
     if (any(profile$sampled)) {
-      cli::cli_alert_info("Sampled run ({sum(tapply(profile$sampled, profile$table_name, any))} table{?s} on a sample): foreign keys and table clusters need a full run (sample_rows = Inf) and were skipped")
+      n_s <- sum(tapply(profile$sampled, paste(profile$table_schema, profile$table_name), any))
+      cli::cli_alert_info("Sampled run: {n_s} table{?s} {?was/were} profiled on a sample, so foreign keys and table clusters (phases 2 and 3) were skipped. Run again with sample_rows = Inf and the same store to profile {?it/them} in full")
       for (t in c("table_clusters", "table_pairs")) if (DBI::dbExistsTable(st$con, t)) DBI::dbRemoveTable(st$con, t)
     } else {
       # phases 2 and 3 run across every profiled table, including those from

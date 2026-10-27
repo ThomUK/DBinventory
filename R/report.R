@@ -43,6 +43,7 @@ render_report <- function(store, output_file = "db_inventory_report.html",
   have_quarto <- nzchar(Sys.which("quarto")) || (has_pkg("quarto") && !is.null(tryCatch(quarto::quarto_path(), error = function(e) NULL)))
   if (engine == "auto") engine <- if (have_quarto) "quarto" else "rmarkdown"
 
+  cli::cli_alert_info("Rendering the report with {engine}; this can take a minute or two for a large database")
   work <- tempfile("dbinventory_report_")
   dir.create(work)
   on.exit(unlink(work, recursive = TRUE), add = TRUE)

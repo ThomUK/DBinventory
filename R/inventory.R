@@ -140,7 +140,11 @@ db_row_counts <- function(con, tables = NULL, dialect = NULL, progress = interac
 #' @param columns A column list from [db_columns()]; computed if `NULL`.
 #' @return `tables` with `newest_datetime`, `newest_datetime_column` and
 #'   `n_datetime_columns` added. `newest_datetime` is ISO 8601 text as the
-#'   engine rendered it, so that date-only and sub-second types coexist.
+#'   engine rendered it, so that date-only and sub-second types coexist. It is
+#'   the newest value up to a year ahead of today across the table's date
+#'   columns, so a column of placeholder dates (`2099-12-31`) does not hide
+#'   the real activity; only when every date column is beyond that horizon is
+#'   the far-future value reported.
 #' @export
 db_freshness <- function(con, tables = NULL, columns = NULL, dialect = NULL, progress = interactive()) {
   d <- db_dialect(con, dialect)
@@ -150,6 +154,7 @@ db_freshness <- function(con, tables = NULL, columns = NULL, dialect = NULL, pro
   newest <- rep(NA_character_, n)
   newest_col <- rep(NA_character_, n)
   n_dt <- rep(0L, n)
+  horizon <- format(Sys.Date() + 366, "%Y-%m-%d")
   if (progress && n > 0) cli::cli_progress_bar("Finding newest datetimes", total = n)
   for (i in seq_len(n)) {
     cols <- columns[
@@ -173,7 +178,11 @@ db_freshness <- function(con, tables = NULL, columns = NULL, dialect = NULL, pro
         vals <- as_chr(unlist(res[1, ], use.names = FALSE))
         vals <- sub("T", " ", vals, fixed = TRUE)
         if (any(!is.na(vals))) {
-          j <- which(vals == max(vals, na.rm = TRUE))[1]
+          # a column of placeholder dates (2099-12-31, 9999-12-31) would otherwise
+          # always win: prefer the newest value up to a year ahead of today
+          plausible <- !is.na(vals) & substr(vals, 1, 10) <= horizon
+          pick <- if (any(plausible)) vals[plausible] else vals
+          j <- which(vals == max(pick, na.rm = TRUE))[1]
           newest[i] <- vals[j]
           newest_col[i] <- cols$column_name[j]
         }

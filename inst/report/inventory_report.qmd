@@ -8,6 +8,11 @@ format:
   html:
     toc: true
     toc-depth: 2
+    page-layout: full
+    grid:
+      sidebar-width: 220px
+      body-width: 1700px
+      margin-width: 150px
     embed-resources: true
     theme: flatly
     code-fold: true
@@ -17,10 +22,15 @@ execute:
   message: false
 ---
 
+```{=html}
+<!-- the rmarkdown fallback has a fixed-width container; let it use the screen like Quarto's full page layout -->
+<style>.main-container { max-width: 96%; }</style>
+```
+
 ```{r setup}
 #| echo: false
 # chunk defaults set here as well as in the YAML so the rmarkdown fallback matches Quarto
-knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, fig.width = 12, out.width = "100%")
 library(DBinventory)
 st <- store_open(params$store)
 tables  <- store_read(st, "inventory_tables")
@@ -127,8 +137,10 @@ if (nrow(failed) > 0) {
 }
 if (!is.null(meta) && nrow(meta) > 0) {
   m <- meta[nrow(meta), ]
-  cat(sprintf("Last run started %s UTC against `%s` (%s dialect), sampling tables above %s rows, top %d values per column, literal values %s.\n\n",
-      m$started_at, m$source, m$dialect, fmt(m$sample_rows), m$top_n,
+  sampling <- if (is.na(m$sample_rows) || !is.finite(as.numeric(m$sample_rows))) "a full check with every row read"
+              else paste0("a sampled check reading at most ", fmt(m$sample_rows), " rows per table")
+  cat(sprintf("Last run started %s UTC against `%s` (%s dialect): %s, top %d values per column, literal values %s.\n\n",
+      m$started_at, m$source, m$dialect, sampling, m$top_n,
       if (isTRUE(as.logical(m$keep_values))) "kept" else "suppressed for identifiers, free text and personal-data names"))
 }
 ```
@@ -194,23 +206,49 @@ How recent is each table? There is no reliable "last updated" stamp on a table, 
 
 ```{r freshness, fig.height=4}
 fresh <- tables[!is.na(tables$newest_datetime), ]
-d <- if (nrow(fresh) > 0) as.Date(substr(fresh$newest_datetime, 1, 10)) else as.Date(character())
-d <- d[!is.na(d)]
+d_all <- if (nrow(fresh) > 0) as.Date(substr(fresh$newest_datetime, 1, 10)) else as.Date(character())
+horizon <- Sys.Date() + 366
+far_future <- !is.na(d_all) & d_all > horizon
+d <- d_all[!is.na(d_all) & !far_future]
 if (length(d) > 0) {
-  month_start <- function(x) as.Date(format(x, "%Y-%m-01"))
-  months <- seq(month_start(min(d)), month_start(max(d)), by = "month")
-  edges <- seq(months[1], by = "month", length.out = length(months) + 1)   # month boundaries
+  # bin by month, quarter or year so that bars stay readable over any span
+  ym <- function(x) 12 * as.integer(format(x, "%Y")) + as.integer(format(x, "%m"))
+  span_months <- ym(max(d)) - ym(min(d)) + 1
+  unit <- if (span_months <= 36) "month" else if (span_months <= 120) "quarter" else "year"
+  unit_start <- function(x) switch(unit,
+    month = as.Date(format(x, "%Y-%m-01")),
+    quarter = as.Date(sprintf("%s-%02d-01", format(x, "%Y"), 3 * ((as.integer(format(x, "%m")) - 1) %/% 3) + 1)),
+    year = as.Date(format(x, "%Y-01-01")))
+  by <- c(month = "month", quarter = "3 months", year = "year")[[unit]]
+  starts <- seq(unit_start(min(d)), unit_start(max(d)), by = by)
+  edges <- c(starts, seq(starts[length(starts)], by = by, length.out = 2)[2])   # unit boundaries
   counts <- data.frame(
     from = edges[-length(edges)], to = edges[-1],
-    tables = as.integer(table(factor(month_start(d), levels = as.character(months))))
+    tables = as.integer(table(cut(d, breaks = edges, right = FALSE)))
   )
   step <- max(1, ceiling(length(edges) / 13))        # at most about thirteen boundary labels
+  date_fmt <- c(month = "%d %b %Y", quarter = "%b %Y", year = "%Y")[[unit]]
   ggplot(counts) +
     geom_rect(aes(xmin = from, xmax = to, ymin = 0, ymax = tables), fill = fill_blue, colour = "white") +
-    scale_x_date(breaks = edges[seq(1, length(edges), by = step)], date_labels = "%d %b %Y", expand = expansion(0)) +
+    scale_x_date(breaks = edges[seq(1, length(edges), by = step)], date_labels = date_fmt, expand = expansion(0)) +
     scale_y_continuous(breaks = function(l) unique(floor(pretty(l))), expand = expansion(mult = c(0, 0.05))) +
-    labs(x = "Newest datetime in table (bars span the month between two boundaries)", y = "Tables")
+    labs(x = paste0("Newest datetime in table (bars span the ", unit, " between two boundaries)"), y = "Tables")
+} else if (any(far_future)) {
+  cat("Every table's newest date is more than a year ahead of today, so there is nothing to chart; see the note below.")
 } else cat("No datetime columns found, so no freshness to show.")
+```
+
+```{r freshness-future, results="asis"}
+if (any(far_future)) {
+  ff <- fresh[far_future, ]
+  ff <- ff[order(ff$newest_datetime, decreasing = TRUE), ]
+  items <- paste0("`", ff$table_schema, ".", ff$table_name, "` (", ff$newest_datetime_column, " = ", substr(ff$newest_datetime, 1, 10), ")")
+  cat(sprintf(paste0(
+    "**%d table%s left out of the chart** because the newest date is more than a year ahead of today (after %s). ",
+    "Dates that far ahead are usually placeholders such as 2099-12-31 or 9999-12-31 rather than activity, ",
+    "and these tables have no other date column with a plausible value: %s\n\n"),
+    nrow(ff), if (nrow(ff) == 1) "" else "s", format(horizon, "%d %B %Y"), paste(items, collapse = "; ")))
+}
 ```
 
 #### Row counts

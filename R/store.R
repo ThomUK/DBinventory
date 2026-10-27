@@ -65,8 +65,35 @@ store_write <- function(store, name, x, append = FALSE) {
     if (is.list(x[[nm]])) x[[nm]] <- vapply(x[[nm]], function(v) jsonlite::toJSON(v, auto_unbox = TRUE), character(1))
     if (inherits(x[[nm]], "integer64")) x[[nm]] <- as.numeric(x[[nm]])
   }
+  if (append && DBI::dbExistsTable(store$con, name)) {
+    # a store written by an earlier version may lack columns this one adds, and vice versa
+    have <- DBI::dbListFields(store$con, name)
+    for (nm in setdiff(names(x), have)) {
+      type <- if (is.numeric(x[[nm]])) "REAL" else if (is.logical(x[[nm]])) "INTEGER" else "TEXT"
+      DBI::dbExecute(store$con, paste0("ALTER TABLE ", DBI::dbQuoteIdentifier(store$con, name), " ADD COLUMN ",
+                                       DBI::dbQuoteIdentifier(store$con, nm), " ", type))
+    }
+    for (nm in setdiff(have, names(x))) x[[nm]] <- NA
+  }
   DBI::dbWriteTable(store$con, name, x, append = append, overwrite = !append)
   invisible(store)
+}
+
+#' Remove one table's rows from a store table
+#' @noRd
+store_delete_table <- function(store, name, table_schema, table_name) {
+  if (!DBI::dbExistsTable(store$con, name)) return(invisible(store))
+  DBI::dbExecute(store$con, paste0("DELETE FROM ", DBI::dbQuoteIdentifier(store$con, name),
+                                   " WHERE table_schema = ? AND table_name = ?"),
+                 params = list(table_schema, table_name))
+  invisible(store)
+}
+
+#' Tables whose stored profile came from a sample
+#' @noRd
+store_tables_sampled <- function(store) {
+  if (!DBI::dbExistsTable(store$con, "column_profile")) return(data.frame(table_schema = character(), table_name = character()))
+  as_tbl(DBI::dbGetQuery(store$con, "SELECT DISTINCT table_schema, table_name FROM column_profile WHERE sampled = 1"))
 }
 
 #' Read a table from the store

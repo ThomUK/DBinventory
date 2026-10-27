@@ -78,6 +78,20 @@ db_profile <- function(con, inventory = NULL, tables = NULL, sample_rows = 1e6, 
       key_t <- paste(tables$table_schema, tables$table_name, sep = "\r")
       key_d <- paste(done$table_schema, done$table_name, sep = "\r")
       skip <- key_t %in% key_d
+      # a table an earlier run sampled is profiled again if this run would read every row
+      was_sampled <- store_tables_sampled(st)
+      key_s <- paste(was_sampled$table_schema, was_sampled$table_name, sep = "\r")
+      rows <- if ("row_count" %in% names(tables)) tables$row_count else rep(NA_real_, nrow(tables))
+      full_now <- !is.finite(sample_rows) | (!is.na(rows) & rows <= sample_rows)
+      redo <- skip & key_t %in% key_s & full_now
+      if (any(redo)) {
+        cli::cli_alert_info("Re-profiling {sum(redo)} table{?s} an earlier run sampled, now that sample_rows allows every row")
+        for (i in which(redo)) {
+          store_delete_table(st, "column_profile", tables$table_schema[i], tables$table_name[i])
+          store_delete_table(st, "profile_log", tables$table_schema[i], tables$table_name[i])
+        }
+        skip <- skip & !redo
+      }
       if (any(skip)) cli::cli_alert_info("Resuming: {sum(skip)} table{?s} already profiled, {sum(!skip)} to go")
       tables <- tables[!skip, , drop = FALSE]
     }

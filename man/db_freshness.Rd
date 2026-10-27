@@ -27,7 +27,11 @@ table visible on the connection.}
 \value{
 \code{tables} with \code{newest_datetime}, \code{newest_datetime_column} and
 \code{n_datetime_columns} added. \code{newest_datetime} is ISO 8601 text as the
-engine rendered it, so that date-only and sub-second types coexist.
+engine rendered it, so that date-only and sub-second types coexist. It is
+the newest value up to a year ahead of today across the table's date
+columns, so a column of placeholder dates (\code{2099-12-31}) does not hide
+the real activity; only when every date column is beyond that horizon is
+the far-future value reported.
 }
 \description{
 For every table with at least one date or datetime column, runs one query
