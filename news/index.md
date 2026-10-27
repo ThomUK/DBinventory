@@ -1,5 +1,14 @@
 # Changelog
 
+## DBinventory 0.1.10
+
+- SQL Server: freshness no longer fails on tables with more than one
+  date column (“EXPR must be a length 1 vector”); the dialect’s text
+  conversion is now vectorised.
+- SQL Server: table sizes fall back to the `sys.partitions` and
+  `sys.allocation_units` catalog views when the login lacks VIEW
+  DATABASE STATE.
+
 ## DBinventory 0.1.9
 
 - Profile: `suppression_reason` records why a column’s values were

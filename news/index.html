@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">DBinventory</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.9</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.10</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -40,6 +40,11 @@
       <small>Source: <a href="https://github.com/ThomUK/DBinventory/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="0.1.10" id="dbinventory-0110">DBinventory 0.1.10<a class="anchor" aria-label="anchor" href="#dbinventory-0110"></a></h2>
+<ul><li>SQL Server: freshness no longer fails on tables with more than one date column (“EXPR must be a length 1 vector”); the dialect’s text conversion is now vectorised.</li>
+<li>SQL Server: table sizes fall back to the <code>sys.partitions</code> and <code>sys.allocation_units</code> catalog views when the login lacks VIEW DATABASE STATE.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="0.1.9" id="dbinventory-019">DBinventory 0.1.9<a class="anchor" aria-label="anchor" href="#dbinventory-019"></a></h2>
 <ul><li>Profile: <code>suppression_reason</code> records why a column’s values were suppressed (<code>personal_data</code>, <code>free_text</code> or <code>identifier</code>) and <code>top_values_omitted</code> why a column has no frequency table.</li>
