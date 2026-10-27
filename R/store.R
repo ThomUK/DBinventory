@@ -14,7 +14,6 @@
 #' @export
 store_open <- function(path) {
   if (inherits(path, "db_store")) return(path)
-  if (!has_pkg("RSQLite")) rlang::abort("The store needs the RSQLite package: install.packages('RSQLite')")
   con <- DBI::dbConnect(RSQLite::SQLite(), path)
   st <- structure(list(con = con, path = path), class = "db_store")
   if (!DBI::dbExistsTable(con, "profile_log")) {

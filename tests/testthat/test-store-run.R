@@ -26,7 +26,6 @@ test_that("store round-trips inventory and profile, and resume skips done tables
 })
 
 test_that("inventory_run does everything from a path and exports CSV", {
-  skip_if_no_sqlite()
   store <- withr::local_tempfile(fileext = ".sqlite")
   export <- withr::local_tempdir()
   out <- inventory_run(fixture_path(), store = store, export_dir = export, organisation = "Fake NHS Trust",
@@ -59,7 +58,6 @@ test_that("connection strings are redacted in run_meta", {
 })
 
 test_that("store_export to parquet needs arrow or duckdb", {
-  skip_if_no_sqlite()
   skip_if(requireNamespace("arrow", quietly = TRUE) || requireNamespace("duckdb", quietly = TRUE))
   store <- withr::local_tempfile(fileext = ".sqlite")
   st <- store_open(store)
@@ -69,7 +67,6 @@ test_that("store_export to parquet needs arrow or duckdb", {
 })
 
 test_that("the report title is prefixed with the organisation", {
-  skip_if_no_sqlite()
   skip_if_not_installed("rmarkdown")
   skip_if(!rmarkdown::pandoc_available())
   store <- withr::local_tempfile(fileext = ".sqlite")

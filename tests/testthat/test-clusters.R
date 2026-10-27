@@ -14,7 +14,6 @@ fixture_profile <- local({
 })
 
 test_that("cluster_tables recovers the synthetic lineage and classifies tables", {
-  skip_if_no_sqlite()
   d <- fixture_profile()
   cl <- cluster_tables(d$prof, d$inv)
   expect_named(cl, c("clusters", "pairs", "matches"))
@@ -42,7 +41,6 @@ test_that("cluster_tables recovers the synthetic lineage and classifies tables",
 })
 
 test_that("schema_priority overrides the canonical choice", {
-  skip_if_no_sqlite()
   d <- fixture_profile()
   # the fixture has one schema, so fake two: tables named derived_* become schema "derived"
   inv <- d$inv; prof <- d$prof
@@ -57,7 +55,6 @@ test_that("schema_priority overrides the canonical choice", {
 })
 
 test_that("cluster_tables refuses a sampled profile and handles an empty one", {
-  skip_if_no_sqlite()
   d <- fixture_profile()
   p <- d$prof; p$sampled[1] <- TRUE
   expect_error(cluster_tables(p, d$inv), "full run")
@@ -66,7 +63,6 @@ test_that("cluster_tables refuses a sampled profile and handles an empty one", {
 })
 
 test_that("decisions are written, merged and applied", {
-  skip_if_no_sqlite()
   d <- fixture_profile()
   cl <- cluster_tables(d$prof, d$inv)
   path <- withr::local_tempfile(fileext = ".csv")
@@ -99,7 +95,6 @@ test_that("decisions are written, merged and applied", {
 })
 
 test_that("inventory_run clusters on a full run and skips phases 2 and 3 on a sampled run", {
-  skip_if_no_sqlite()
   store <- withr::local_tempfile(fileext = ".sqlite")
   dec <- withr::local_tempfile(fileext = ".csv")
   out <- inventory_run(fixture_path(), store = store, include = c("pas_patients$", "derived_patients$", "sites$"),

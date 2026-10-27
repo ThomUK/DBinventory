@@ -1,9 +1,7 @@
-skip_if_no_sqlite <- function() testthat::skip_if_not_installed("RSQLite")
 
 fixture_path <- function() testthat::test_path("fixtures", "fakehosp_tiny.sqlite")
 
 fixture_con <- function() {
-  skip_if_no_sqlite()
   con <- DBI::dbConnect(RSQLite::SQLite(), fixture_path(), flags = RSQLite::SQLITE_RO)
   withr::defer(DBI::dbDisconnect(con), envir = parent.frame())
   con
@@ -19,7 +17,6 @@ fixture_con <- function() {
 #   blank   always NULL
 #   nhs_number  10-digit text, unique, NULL for id 30
 toy_con <- function() {
-  skip_if_no_sqlite()
   con <- DBI::dbConnect(RSQLite::SQLite(), ":memory:")
   withr::defer(DBI::dbDisconnect(con), envir = parent.frame())
   DBI::dbExecute(con, "CREATE TABLE toy (id INTEGER, code TEXT, flag BOOLEAN, amount REAL, seen TIMESTAMP, note TEXT, blank TEXT, nhs_number TEXT)")

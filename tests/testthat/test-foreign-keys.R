@@ -70,7 +70,6 @@ test_that("helpers normalise table stems and value shapes", {
 })
 
 test_that("inventory_run infers foreign keys across the whole store and writes them back", {
-  skip_if_no_sqlite()
   store <- withr::local_tempfile(fileext = ".sqlite")
   # first run profiles only the key table, second run adds the child and must link across both
   inventory_run(fixture_path(), store = store, include = "sites$", progress = FALSE)

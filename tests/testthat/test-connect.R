@@ -1,5 +1,4 @@
 test_that("db_connect dispatches on the argument", {
-  skip_if_no_sqlite()
   con <- db_connect(fixture_path())
   expect_s4_class(con, "SQLiteConnection")
   expect_identical(db_connect(con), con)

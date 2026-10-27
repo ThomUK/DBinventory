@@ -1,6 +1,6 @@
 Package: DBinventory
 Title: Inventory and Column Profile of a Database or Parquet Store
-Version: 0.1.10
+Version: 0.1.11
 Authors@R: 
     person("Tom", "Smith", , "tomsmith_uk@hotmail.com", role = c("aut", "cre"))
 Description: Builds the first two artefacts of a data-documentation effort from
@@ -26,6 +26,7 @@ Imports:
     digest,
     jsonlite,
     rlang,
+    RSQLite,
     tibble,
     utils
 Suggests: 
@@ -38,7 +39,6 @@ Suggests:
     odbc,
     quarto,
     rmarkdown,
-    RSQLite,
     scales,
     testthat (>= 3.0.0),
     withr

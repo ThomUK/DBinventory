@@ -29,7 +29,6 @@ db_connect <- function(x, ...) {
     return(parquet_connect(x, ...))
   }
   if (grepl("\\.(sqlite|sqlite3|db)$", x, ignore.case = TRUE)) {
-    if (!has_pkg("RSQLite")) rlang::abort("Opening a SQLite file needs the RSQLite package")
     return(DBI::dbConnect(RSQLite::SQLite(), x, ...))
   }
   if (grepl("\\.(duckdb|ddb)$", x, ignore.case = TRUE)) {
