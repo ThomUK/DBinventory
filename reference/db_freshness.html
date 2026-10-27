@@ -11,7 +11,7 @@ the column that held it. This is the freshness signal of the inventory."></head>
 
     <a class="navbar-brand me-2" href="../index.html">DBinventory</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.11</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.12</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -91,7 +91,11 @@ table visible on the connection.</p></dd>
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p><code>tables</code> with <code>newest_datetime</code>, <code>newest_datetime_column</code> and
 <code>n_datetime_columns</code> added. <code>newest_datetime</code> is ISO 8601 text as the
-engine rendered it, so that date-only and sub-second types coexist.</p>
+engine rendered it, so that date-only and sub-second types coexist. It is
+the newest value up to a year ahead of today across the table's date
+columns, so a column of placeholder dates (<code>2099-12-31</code>) does not hide
+the real activity; only when every date column is beyond that horizon is
+the far-future value reported.</p>
     </div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
