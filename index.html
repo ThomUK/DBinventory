@@ -22,7 +22,7 @@
 
     <a class="navbar-brand me-2" href="index.html">DBinventory</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.10</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.11</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -228,7 +228,7 @@
 <p><strong>One query per table for the aggregates, one per eligible column for top values.</strong> Aggregates are batched <code>column_batch</code> columns at a time. Top values are skipped for columns with more than <code>top_values_max_distinct</code> distinct values, where a frequency table says little.</p>
 <p><strong>Only <code>SELECT</code> is needed.</strong> Metadata comes from <code>INFORMATION_SCHEMA</code> (<code>sqlite_master</code> on SQLite). Table sizes come from <code>sys.dm_db_partition_stats</code> on SQL Server and <code>pg_total_relation_size</code> on PostgreSQL when the login can see them, and are <code>NA</code> otherwise. Temporary tables need no extra rights.</p>
 <p><strong>Statistics that a type cannot support are skipped, not failed.</strong> No <code>MIN()</code> on a SQL Server <code>bit</code>, no <code>COUNT(DISTINCT)</code> on <code>text</code>, <code>ntext</code>, <code>xml</code> or geography; a <code>timestamp</code> on SQL Server is classified as binary (it is a row version). A table that fails for any reason is logged in <code>profile_log</code> and the run continues.</p>
-<p><strong>The store is SQLite.</strong> It is a single file, needs only <code>RSQLite</code>, and is the checkpoint. <code><a href="reference/store_export.html">store_export()</a></code> writes CSV (always) or Parquet (with <code>arrow</code> or <code>duckdb</code>).</p>
+<p><strong>The store is SQLite.</strong> It is a single file (RSQLite is installed with the package) and is the checkpoint. <code><a href="reference/store_export.html">store_export()</a></code> writes CSV (always) or Parquet (with <code>arrow</code> or <code>duckdb</code>).</p>
 <p><strong>The report is a Quarto document</strong> at <code>inst/report/inventory_report.qmd</code>, rendered with the Quarto CLI when present and otherwise through <code><a href="https://pkgs.rstudio.com/rmarkdown/reference/render.html" class="external-link">rmarkdown::render()</a></code>, which handles the same knitr chunks.</p>
 </div>
 <div class="section level2">

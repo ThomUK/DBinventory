@@ -1,5 +1,10 @@
 # Changelog
 
+## DBinventory 0.1.11
+
+- RSQLite is now a required dependency (it was suggested), so the
+  results store always works after `install_github()`.
+
 ## DBinventory 0.1.10
 
 - SQL Server: freshness no longer fails on tables with more than one

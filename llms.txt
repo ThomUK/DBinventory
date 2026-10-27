@@ -193,8 +193,8 @@ Temporary tables need no extra rights.
 (it is a row version). A table that fails for any reason is logged in
 `profile_log` and the run continues.
 
-**The store is SQLite.** It is a single file, needs only `RSQLite`, and
-is the checkpoint.
+**The store is SQLite.** It is a single file (RSQLite is installed with
+the package) and is the checkpoint.
 [`store_export()`](https://thomuk.github.io/DBinventory/reference/store_export.md)
 writes CSV (always) or Parquet (with `arrow` or `duckdb`).
 
