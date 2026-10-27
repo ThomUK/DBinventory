@@ -205,10 +205,15 @@ db_table_sizes <- function(con, tables = NULL, dialect = NULL) {
   tables$row_count_stats <- NA_real_
   sql <- sql_table_sizes(d)
   if (is.null(sql)) return(tables)
-  sizes <- tryCatch(db_query(con, sql), error = function(e) {
-    cli::cli_alert_info("Table sizes unavailable ({conditionMessage(e)}); size_bytes left NA")
-    NULL
-  })
+  # a dialect may offer several queries, each needing fewer permissions than the last
+  sizes <- NULL
+  for (q in sql) {
+    sizes <- tryCatch(db_query(con, q), error = function(e) {
+      if (q == sql[length(sql)]) cli::cli_alert_info("Table sizes unavailable ({conditionMessage(e)}); size_bytes left NA")
+      NULL
+    })
+    if (!is.null(sizes)) break
+  }
   if (is.null(sizes) || nrow(sizes) == 0) return(tables)
   names(sizes) <- tolower(names(sizes))
   key_s <- paste(tolower(sizes$table_schema), tolower(sizes$table_name), sep = "\r")

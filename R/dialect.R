@@ -156,20 +156,36 @@ sql_list_table_columns.db_dialect_sqlite <- function(d, schema, table) {
 #' SQL that returns table sizes from system views, or NULL if unavailable
 #'
 #' Columns: `table_schema`, `table_name`, `size_bytes`, `row_count_stats`.
+#' May return several queries; they are tried in order until one succeeds.
 #' @noRd
 sql_table_sizes <- function(d) UseMethod("sql_table_sizes")
 #' @export
 sql_table_sizes.db_dialect <- function(d) NULL
 #' @export
 sql_table_sizes.db_dialect_mssql <- function(d) {
-  paste(
-    "SELECT s.name AS table_schema, t.name AS table_name,",
-    "SUM(ps.reserved_page_count) * 8192 AS size_bytes,",
-    "SUM(CASE WHEN ps.index_id IN (0, 1) THEN ps.row_count ELSE 0 END) AS row_count_stats",
-    "FROM sys.dm_db_partition_stats ps",
-    "JOIN sys.tables t ON t.object_id = ps.object_id",
-    "JOIN sys.schemas s ON s.schema_id = t.schema_id",
-    "GROUP BY s.name, t.name"
+  c(
+    # the partition statistics view: exact, but needs VIEW DATABASE STATE
+    paste(
+      "SELECT s.name AS table_schema, t.name AS table_name,",
+      "SUM(ps.reserved_page_count) * 8192 AS size_bytes,",
+      "SUM(CASE WHEN ps.index_id IN (0, 1) THEN ps.row_count ELSE 0 END) AS row_count_stats",
+      "FROM sys.dm_db_partition_stats ps",
+      "JOIN sys.tables t ON t.object_id = ps.object_id",
+      "JOIN sys.schemas s ON s.schema_id = t.schema_id",
+      "GROUP BY s.name, t.name"
+    ),
+    # the catalog views: visible to any login that can read the tables
+    paste(
+      "SELECT s.name AS table_schema, t.name AS table_name,",
+      "(SELECT SUM(au.total_pages) * 8192 FROM sys.partitions p",
+      "JOIN sys.allocation_units au ON (au.type IN (1, 3) AND au.container_id = p.hobt_id)",
+      "OR (au.type = 2 AND au.container_id = p.partition_id)",
+      "WHERE p.object_id = t.object_id) AS size_bytes,",
+      "(SELECT SUM(p.rows) FROM sys.partitions p",
+      "WHERE p.object_id = t.object_id AND p.index_id IN (0, 1)) AS row_count_stats",
+      "FROM sys.tables t",
+      "JOIN sys.schemas s ON s.schema_id = t.schema_id"
+    )
   )
 }
 #' @export
@@ -226,13 +242,13 @@ sql_to_text.db_dialect <- function(d, x, type_class) paste0("CAST(", x, " AS VAR
 sql_to_text.db_dialect_sqlite <- function(d, x, type_class) paste0("CAST(", x, " AS TEXT)")
 #' @export
 sql_to_text.db_dialect_mssql <- function(d, x, type_class) {
-  switch(type_class,
-    datetime = paste0("CONVERT(VARCHAR(34), ", x, ", 126)"),
-    date = paste0("CONVERT(VARCHAR(10), ", x, ", 23)"),
-    time = paste0("CONVERT(VARCHAR(16), ", x, ", 114)"),
-    numeric = paste0("CONVERT(VARCHAR(60), ", x, ", 2)"),
-    paste0("CAST(", x, " AS NVARCHAR(200))")
-  )
+  # vectorised: freshness converts every date column of a table in one query
+  type_class <- rep_len(type_class, length(x))
+  ifelse(type_class == "datetime", paste0("CONVERT(VARCHAR(34), ", x, ", 126)"),
+  ifelse(type_class == "date", paste0("CONVERT(VARCHAR(10), ", x, ", 23)"),
+  ifelse(type_class == "time", paste0("CONVERT(VARCHAR(16), ", x, ", 114)"),
+  ifelse(type_class == "numeric", paste0("CONVERT(VARCHAR(60), ", x, ", 2)"),
+  paste0("CAST(", x, " AS NVARCHAR(200))")))))
 }
 
 #' Build a SELECT with an optional row limit, in the dialect's syntax

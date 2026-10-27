@@ -23,7 +23,7 @@ test_that("SQL Server SQL uses T-SQL forms", {
   ms <- db_dialect(dialect = "mssql")
   expect_match(DBinventory:::sql_list_tables(ms), "INFORMATION_SCHEMA.TABLES")
   expect_match(DBinventory:::sql_list_columns(ms), "INFORMATION_SCHEMA.COLUMNS")
-  expect_match(DBinventory:::sql_table_sizes(ms), "sys.dm_db_partition_stats")
+  expect_match(DBinventory:::sql_table_sizes(ms)[1], "sys.dm_db_partition_stats")
   expect_equal(DBinventory:::sql_count_star(ms), "COUNT_BIG(*)")
   expect_equal(DBinventory:::sql_len(ms, "[x]"), "LEN([x])")
   expect_equal(DBinventory:::sql_select(ms, c("a", "b"), "[dbo].[t]", n = 10), "SELECT TOP (10) a, b FROM [dbo].[t]")
@@ -76,4 +76,24 @@ test_that("type_class maps engine types", {
   expect_equal(type_class(c("TEXT", "", "NUMERIC(10,2)", "VARCHAR(50)", "unsigned big int", "DATETIME"), "sqlite"),
                c("string", "other", "numeric", "string", "integer", "datetime"))
   expect_equal(type_class("timestamp without time zone", "postgres"), "datetime")
+})
+
+test_that("SQL Server text conversion is vectorised over type classes", {
+  ms <- db_dialect(dialect = "mssql")
+  out <- sql_to_text(ms, c("MAX(a)", "MAX(b)", "MAX(c)", "x"), c("datetime", "date", "numeric", "string"))
+  expect_length(out, 4)
+  expect_equal(out[1], "CONVERT(VARCHAR(34), MAX(a), 126)")
+  expect_equal(out[2], "CONVERT(VARCHAR(10), MAX(b), 23)")
+  expect_equal(out[3], "CONVERT(VARCHAR(60), MAX(c), 2)")
+  expect_equal(out[4], "CAST(x AS NVARCHAR(200))")
+  expect_equal(sql_to_text(ms, "t", "time"), "CONVERT(VARCHAR(16), t, 114)")
+})
+
+test_that("SQL Server table sizes offer a fallback that needs no VIEW DATABASE STATE", {
+  q <- sql_table_sizes(db_dialect(dialect = "mssql"))
+  expect_length(q, 2)
+  expect_match(q[1], "dm_db_partition_stats")
+  expect_match(q[2], "sys.allocation_units")
+  expect_false(grepl("dm_db_partition_stats", q[2]))
+  expect_null(sql_table_sizes(db_dialect(dialect = "sqlite")))
 })
